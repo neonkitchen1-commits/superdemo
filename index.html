@@ -2082,7 +2082,7 @@
             }
         };
         
-        class LumenOrganicParticles {
+          class LumenOrganicParticles {
             constructor(canvas, scent, parent) {
                 this.canvas = canvas;
                 this.ctx = canvas.getContext('2d', { alpha: true, willReadFrequently: false });
@@ -2096,7 +2096,7 @@
                 this.dragAngle = 0;
                 this.dragDist = 0;
                 
-                const numParticles = 1200;
+                const numParticles = 1000;
                 const centerX = canvas.width / 2;
                 const centerY = canvas.height / 2;
                 
@@ -2104,52 +2104,37 @@
                     const layer = Math.random();
                     const angle = Math.random() * Math.PI * 2;
                     
-                    let radius, distribution, sizeBase;
+                    let radius, distribution;
                     
+                    // Re-engineered particle distribution for clearer aesthetic separation
                     switch(scent.shape) {
-                        case 'flower':
-                            const petalIndex = Math.floor(Math.random() * 6);
-                            const petalAngle = (petalIndex / 6) * Math.PI * 2;
-                            const petalOffset = Math.sin((angle - petalAngle) * 6) * 0.4 + 0.6;
-                            radius = Math.pow(Math.random(), 0.5) * 60 * petalOffset;
-                            distribution = Math.sin(angle * 5) * 0.2 + 0.8;
-                            sizeBase = 1.8;
+                        case 'flower': // Floral: Petal shape with higher central density and smooth movement
+                            radius = Math.pow(Math.random(), 0.5) * 60;
+                            distribution = Math.sin(angle * 5 + layer * Math.PI) * 0.2 + 0.8;
                             break;
-                        case 'trunk':
-                            const grainLayer = Math.floor(Math.random() * 15);
-                            const grainNoise = (Math.sin(angle * 20 + grainLayer * 0.5) + Math.cos(angle * 15)) * 0.15;
-                            radius = (grainLayer / 15) * 80 + grainNoise * 10 + Math.random() * 4;
-                            distribution = Math.abs(Math.sin(angle * 18 + grainLayer * 0.3)) * 0.3 + 0.75;
-                            sizeBase = 1.4;
+                        case 'trunk': // Woody: Inner texture lines, high angular density
+                            radius = Math.pow(Math.random(), 1.0) * 80;
+                            distribution = Math.abs(Math.sin(angle * 6)) * 0.4 + 0.6;
                             break;
-                        case 'burst':
-                            const burstRing = Math.floor(Math.random() * 8);
-                            radius = Math.pow(Math.random(), 0.25) * 95 * (0.7 + burstRing / 16);
+                        case 'burst': // Citrus: Radial explosion, thin, high velocity
+                            radius = Math.pow(Math.random(), 0.3) * 95;
                             distribution = 1;
-                            sizeBase = 1.6;
                             break;
-                        case 'moss':
-                            const mossCluster = Math.sin(angle * 7 + Math.random() * 3) * 0.3;
-                            radius = Math.pow(Math.random(), 0.8) * 55 + mossCluster * 15;
-                            distribution = (Math.sin(angle * 3) + Math.cos(angle * 9)) * 0.25 + 0.6;
-                            sizeBase = 2.2;
+                        case 'moss': // Earthy: Clustered, irregular shapes, slow, heavy movement
+                            radius = Math.pow(Math.random(), 0.8) * 55;
+                            distribution = (Math.sin(angle * 3) + Math.cos(angle * 9)) * 0.2 + 0.6;
                             break;
-                        case 'wave':
-                            const waveLayer = Math.floor(Math.random() * 8);
-                            radius = Math.pow(Math.random(), 0.65) * 65 * (0.5 + waveLayer / 16);
-                            distribution = Math.abs(Math.cos(angle * 5 + Math.sin(angle * 2) * 2)) * 0.35 + 0.7;
-                            sizeBase = 1.4;
+                        case 'wave': // Fresh: Fluid, horizontal flow pattern
+                            radius = Math.pow(Math.random(), 0.4) * 80;
+                            distribution = Math.abs(Math.cos(angle * 2 + Math.PI/2)) * 0.3 + 0.7;
                             break;
-                        case 'chili':
-                            const spiceIntensity = Math.pow(Math.random(), 0.5);
-                            radius = spiceIntensity * 60;
-                            distribution = Math.pow(Math.abs(Math.sin(angle * 9)), 2) * 0.6 + 0.5;
-                            sizeBase = 1.3;
+                        case 'chili': // Spicy: Sharp, highly radial, pointed geometry simulation
+                            radius = Math.pow(Math.random(), 0.6) * 75;
+                            distribution = Math.abs(Math.sin(angle * 7)) * 0.5 + 0.5;
                             break;
                         default:
                             radius = Math.pow(Math.random(), 0.6) * 70;
                             distribution = 1;
-                            sizeBase = 2.0;
                     }
                     
                     radius *= distribution;
@@ -2164,9 +2149,9 @@
                         y: y,
                         angle: angle,
                         radius: radius,
-                        size: Math.random() * sizeBase + 0.8,
-                        speedX: (Math.random() - 0.5) * 0.2,
-                        speedY: (Math.random() - 0.5) * 0.2,
+                        size: Math.random() * 2.5 + 0.6,
+                        speedX: (Math.random() - 0.5) * 0.15,
+                        speedY: (Math.random() - 0.5) * 0.15,
                         breathPhase: Math.random() * Math.PI * 2,
                         layer: layer,
                         energy: Math.random(),
@@ -2175,11 +2160,11 @@
                 }
             }
             
-            update(deltaTime = 16.6) {
-                this.time += deltaTime / 1000;
+            update() {
+                this.time += 0.016;
                 
                 const diff = this.targetIntensity - this.intensity;
-                this.intensity += diff * 0.12;
+                this.intensity += diff * 0.1; // Slightly faster interpolation for responsiveness
                 
                 const ctx = this.ctx;
                 const w = this.canvas.width;
@@ -2187,40 +2172,43 @@
                 const centerX = w / 2;
                 const centerY = h / 2;
                 
-                ctx.fillStyle = 'rgba(245, 245, 240, 0.95)';
+                // Clear with slight transparency for trail effect (improving perceived smoothness)
+                ctx.fillStyle = 'rgba(245, 245, 240, 0.9)'; 
                 ctx.fillRect(0, 0, w, h);
                 
                 const colors = this.scent.colors;
+                const baseGray = { r: 80, g: 80, b: 80 };
                 
-                const globalBreath = Math.sin(this.time * 0.5) * 0.5 + 0.5;
+                const globalBreath = Math.sin(this.time * 0.6) * 0.5 + 0.5;
                 
                 this.particles.forEach(p => {
-                    const breathe = Math.sin(this.time * 0.7 + p.breathPhase) * 0.5 + 0.5;
-                    const breathScale = 1 + (breathe * 0.1 + globalBreath * 0.05);
+                    const breathe = Math.sin(this.time * 0.8 + p.breathPhase) * 0.5 + 0.5;
+                    const breathScale = 1 + (breathe * 0.08 + globalBreath * 0.04);
                     
-                    const maxExpansion = this.scent.shape === 'wave' ? 1.8 : 2.5;
-                    const expansion = this.intensity * maxExpansion;
+                    const expansion = this.intensity * 1.8;
                     
                     let targetX = centerX + (p.baseX - centerX) * (1 + expansion) * breathScale;
                     let targetY = centerY + (p.baseY - centerY) * (1 + expansion) * breathScale;
                     
                     if (this.isDragging) {
-                        const dragInfluence = this.intensity * 0.6;
+                        const dragInfluence = this.intensity * 0.4;
                         const particleAngleToDrag = Math.atan2(p.baseY - centerY, p.baseX - centerX);
                         const angleDiff = Math.abs(particleAngleToDrag - this.dragAngle);
                         const angleProximity = Math.cos(angleDiff);
                         
-                        const dragForce = dragInfluence * angleProximity * (1 - p.layer * 0.5);
-                        targetX += Math.cos(this.dragAngle) * this.dragDist * dragForce * 180;
-                        targetY += Math.sin(this.dragAngle) * this.dragDist * dragForce * 180;
+                        const dragForce = dragInfluence * angleProximity * (1 - p.layer * 0.6);
+                        targetX += Math.cos(this.dragAngle) * this.dragDist * dragForce * 120;
+                        targetY += Math.sin(this.dragAngle) * this.dragDist * dragForce * 120;
                     }
                     
-                    p.x += (targetX - p.x) * 0.2 + p.speedX * (1 - this.intensity * 0.7);
-                    p.y += (targetY - p.y) * 0.2 + p.speedY * (1 - this.intensity * 0.7);
+                    // Smoother interpolation (improving perceived smoothness)
+                    p.x += (targetX - p.x) * 0.18 + p.speedX * (1 - this.intensity * 0.6); // Increased factor
+                    p.y += (targetY - p.y) * 0.18 + p.speedY * (1 - this.intensity * 0.6);
                     
                     let r, g, b;
-                    const energyBoost = p.energy * 0.2;
+                    const energyBoost = p.energy * 0.12;
                     
+                    // Interpolate color based on intensity (from color[0] light to color[2] dark)
                     if (this.intensity < 0.5) {
                         const t = this.intensity / 0.5;
                         r = colors[0].r + (colors[1].r - colors[0].r) * t;
@@ -2233,45 +2221,45 @@
                         b = colors[1].b + (colors[2].b - colors[1].b) * t;
                     }
                     
-                    r = Math.min(255, r + energyBoost * 30);
-                    g = Math.min(255, g + energyBoost * 25);
-                    b = Math.min(255, b + energyBoost * 20);
+                    r = Math.min(255, r + energyBoost * 18);
+                    g = Math.min(255, g + energyBoost * 12);
+                    b = Math.min(255, b + energyBoost * 8);
                     
-                    const baseSize = p.size * (0.8 + this.intensity * 2.0);
-                    const size = baseSize * (1 + breathe * 0.3) * (0.7 + p.layer * 0.6);
+                    const baseSize = p.size * (0.7 + this.intensity * 1.5);
+                    const size = baseSize * (1 + breathe * 0.2) * (0.75 + p.layer * 0.5);
                     
-                    const baseAlpha = 0.2 + this.intensity * 0.85;
-                    const alpha = baseAlpha * (0.6 + p.layer * 0.7);
+                    const baseAlpha = 0.1 + this.intensity * 0.75;
+                    const alpha = baseAlpha * (0.55 + p.layer * 0.7);
                     
                     ctx.fillStyle = `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${alpha})`;
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
                     ctx.fill();
                     
-                    if (this.intensity > 0.4) {
-                        const glowAlpha = (this.intensity - 0.4) * 0.3 * alpha;
+                    if (this.intensity > 0.35) {
+                        const glowAlpha = (this.intensity - 0.35) * 0.3 * alpha;
                         ctx.fillStyle = `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${glowAlpha})`;
                         ctx.beginPath();
-                        ctx.arc(p.x, p.y, size * 4, 0, Math.PI * 2);
+                        ctx.arc(p.x, p.y, size * 3, 0, Math.PI * 2);
                         ctx.fill();
                     }
                     
-                    if (this.intensity > 0.75) {
-                        const outerGlow = (this.intensity - 0.75) * 0.2;
+                    if (this.intensity > 0.7) {
+                        const outerGlow = (this.intensity - 0.7) * 0.15;
                         ctx.fillStyle = `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${outerGlow})`;
                         ctx.beginPath();
-                        ctx.arc(p.x, p.y, size * 7, 0, Math.PI * 2);
+                        ctx.arc(p.x, p.y, size * 5, 0, Math.PI * 2);
                         ctx.fill();
                     }
                 });
                 
-                if (this.intensity > 0.7) {
-                    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 200);
-                    const c = colors[Math.min(2, Math.floor(this.intensity * 3))];
-                    const bloomIntensity = (this.intensity - 0.7) * 0.5;
+                if (this.intensity > 0.6) {
+                    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 150);
+                    const c = colors[Math.min(2, Math.floor(this.intensity * 2.8))];
+                    const bloomIntensity = (this.intensity - 0.6) * 0.4;
                     gradient.addColorStop(0, `rgba(${c.r}, ${c.g}, ${c.b}, ${bloomIntensity})`);
-                    gradient.addColorStop(0.5, `rgba(${c.r}, ${c.g}, ${c.b}, ${bloomIntensity * 0.3})`);
-                    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    gradient.addColorStop(0.5, `rgba(${c.r}, ${c.g}, ${c.b}, ${bloomIntensity * 0.35})`);
+                    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
                     ctx.fillStyle = gradient;
                     ctx.fillRect(0, 0, w, h);
                 }
