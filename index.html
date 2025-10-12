@@ -2096,7 +2096,7 @@
                 this.dragAngle = 0;
                 this.dragDist = 0;
                 
-                const numParticles = 600;
+                const numParticles = 1200;
                 const centerX = canvas.width / 2;
                 const centerY = canvas.height / 2;
                 
@@ -2111,8 +2111,8 @@
                             const petalIndex = Math.floor(Math.random() * 6);
                             const petalAngle = (petalIndex / 6) * Math.PI * 2;
                             const petalOffset = Math.sin((angle - petalAngle) * 6) * 0.4 + 0.6;
-                            radius = Math.pow(Math.random(), 0.4) * 90 * petalOffset;
-                            distribution = Math.sin(angle * 6) * 0.4 + 0.8;
+                            radius = Math.pow(Math.random(), 0.5) * 60 * petalOffset;
+                            distribution = Math.sin(angle * 5) * 0.2 + 0.8;
                             sizeBase = 1.8;
                             break;
                         case 'trunk':
@@ -2130,8 +2130,8 @@
                             break;
                         case 'moss':
                             const mossCluster = Math.sin(angle * 7 + Math.random() * 3) * 0.3;
-                            radius = Math.pow(Math.random(), 0.8) * 75 + mossCluster * 15;
-                            distribution = (Math.sin(angle * 6) + Math.cos(angle * 9)) * 0.25 + 0.7;
+                            radius = Math.pow(Math.random(), 0.8) * 55 + mossCluster * 15;
+                            distribution = (Math.sin(angle * 3) + Math.cos(angle * 9)) * 0.25 + 0.6;
                             sizeBase = 2.2;
                             break;
                         case 'wave':
@@ -2142,8 +2142,8 @@
                             break;
                         case 'chili':
                             const spiceIntensity = Math.pow(Math.random(), 0.5);
-                            radius = spiceIntensity * 80;
-                            distribution = Math.pow(Math.abs(Math.sin(angle * 10)), 1.5) * 0.6 + 0.5;
+                            radius = spiceIntensity * 60;
+                            distribution = Math.pow(Math.abs(Math.sin(angle * 9)), 2) * 0.6 + 0.5;
                             sizeBase = 1.3;
                             break;
                         default:
