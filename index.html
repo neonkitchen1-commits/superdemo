@@ -1802,286 +1802,7 @@
             t(key) { return this.data[this.lang][key] || key; }
         };
         
-        const LumenScent = {
-            scents: [
-                { 
-                    id: 'floral', 
-                    en: 'Floral', 
-                    zh: '花香', 
-                    shape: 'flower', 
-                    colors: [
-                        { r: 255, g: 193, b: 182 },
-                        { r: 255, g: 160, b: 160 },
-                        { r: 232, g: 74, b: 95 }
-                    ] 
-                },
-                { 
-                    id: 'woody', 
-                    en: 'Woody', 
-                    zh: '木质', 
-                    shape: 'trunk', 
-                    colors: [
-                        { r: 139, g: 69, b: 19 },
-                        { r: 131, g: 90, b: 60 },
-                        { r: 44, g: 23, b: 8 }
-                    ] 
-                },
-                { 
-                    id: 'citrus', 
-                    en: 'Citrus', 
-                    zh: '柑橘', 
-                    shape: 'burst', 
-                    colors: [
-                        { r: 255, g: 240, b: 100 },
-                        { r: 255, g: 215, b: 0 },
-                        { r: 255, g: 180, b: 0 }
-                    ] 
-                },
-                { 
-                    id: 'earthy', 
-                    en: 'Earthy', 
-                    zh: '土壤', 
-                    shape: 'moss', 
-                    colors: [
-                        { r: 85, g: 107, b: 47 },
-                        { r: 76, g: 92, b: 23 },
-                        { r: 36, g: 47, b: 20 }
-                    ] 
-                },
-                { 
-                    id: 'fresh', 
-                    en: 'Fresh', 
-                    zh: '清新', 
-                    shape: 'wave', 
-                    colors: [
-                        { r: 155, g: 183, b: 212 },
-                        { r: 100, g: 140, b: 180 },
-                        { r: 58, g: 78, b: 107 }
-                    ] 
-                },
-                { 
-                    id: 'spicy', 
-                    en: 'Spicy', 
-                    zh: '辛香', 
-                    shape: 'chili', 
-                    colors: [
-                        { r: 178, g: 34, b: 34 },
-                        { r: 124, g: 34, b: 32 },
-                        { r: 95, g: 33, b: 25 }
-                    ] 
-                }
-            ],
-            values: {},
-            instances: [],
-            currentPage: 0,
-            dragging: null,
-
-            init() {
-                this.scents.forEach(scent => {
-                    this.values[scent.id] = 0;
-                });
-                
-                this.instances = [];
-                
-                this.scents.forEach((scent, idx) => {
-                    const pageEl = document.querySelector(`.scent-page[data-page="${idx}"]`);
-                    if (!pageEl) return; 
-
-                    pageEl.innerHTML = '';
-                    
-                    const container = document.createElement('div');
-                    container.style.cssText = 'width: 100%; display: flex; flex-direction: column; align-items: center; flex: 1;';
-                    
-                    const canvasWrapper = document.createElement('div');
-                    canvasWrapper.style.cssText = 'position: relative; flex-shrink: 0; margin-bottom: 1rem;';
-                    
-                    const canvas = document.createElement('canvas');
-                    canvas.className = 'lumen-canvas';
-                    
-                    const isMobile = window.innerWidth <= 768;
-                    const size = isMobile ? Math.min(280, window.innerWidth - 40) : Math.min(350, window.innerWidth - 60);
-                    canvas.width = size;
-                    canvas.height = size;
-                    canvasWrapper.appendChild(canvas);
-                    container.appendChild(canvasWrapper);
-                    
-                    const label = document.createElement('div');
-                    label.className = 'lumen-label';
-                    label.innerHTML = `
-                        <div class="lumen-name ${I18N.lang === 'zh' ? 'zh' : ''}" data-scent="${scent.id}">${scent[I18N.lang]}</div>
-                        <div class="lumen-value" data-value="${scent.id}">0</div>
-                        <p class="lumen-instruction">
-                            ${I18N.lang === 'en' ? 'Drag outward from center' : '从中心向外拖动'}
-                        </p>
-                    `;
-                    container.appendChild(label);
-                    
-                    const introBox = document.createElement('div');
-                    introBox.className = `scent-intro-box ${I18N.lang === 'zh' ? 'zh' : ''}`;
-                    introBox.dataset.scent = scent.id;
-                    const key = `${scent.id}_desc`;
-                    introBox.textContent = I18N.t(key);
-                    container.appendChild(introBox);
-                    
-                    pageEl.appendChild(container);
-                    
-                    const instance = new LumenOrganicParticles(canvas, scent, this);
-                    this.instances.push(instance);
-                    
-                    this.addRadialInteraction(canvas, scent.id, instance);
-                });
-                
-                this.updateLabels();
-            },
-
-            update(deltaTime = 16.6) {
-                if (App.state !== 'SCENT') return;
-                try {
-                    this.instances.forEach(inst => inst.update(deltaTime));
-                } catch(e) {
-                    console.error('LumenScent update error:', e);
-                    // Don't throw - continue rendering
-                }
-            },
-
-            addRadialInteraction(canvas, scentId, instance) {
-                const getPointer = (e) => {
-                    const rect = canvas.getBoundingClientRect();
-                    const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
-                    const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
-                    return { x, y };
-                };
-                
-                const onStart = (e) => {
-                    this.dragging = scentId;
-                    instance.isDragging = true;
-                    Haptic.light();
-                    e.preventDefault();
-                };
-                
-                const onMove = PerformanceUtils.throttle((e) => {
-                    if (this.dragging !== scentId) return;
-                    
-                    const pos = getPointer(e);
-                    const centerX = canvas.width / 2;
-                    const centerY = canvas.height / 2;
-                    
-                    const dx = pos.x - centerX;
-                    const dy = pos.y - centerY;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
-                    const maxDist = Math.min(centerX, centerY) * 0.8;
-                    
-                    const value = Math.min(100, Math.max(0, (dist / maxDist) * 100));
-                    this.values[scentId] = Math.round(value);
-                    
-                    document.querySelector(`[data-value="${scentId}"]`).textContent = this.values[scentId];
-                    
-                    instance.targetIntensity = this.values[scentId] / 100;
-                    instance.dragAngle = Math.atan2(dy, dx);
-                    instance.dragDist = dist / maxDist;
-                    
-                    Sound.playScentDrag(instance.dragDist, instance.dragAngle);
-                    
-                    e.preventDefault();
-                }, 16);
-                
-                const onEnd = () => {
-                    if (this.dragging === scentId) {
-                        this.dragging = null;
-                        instance.isDragging = false;
-                        Sound.stopScentDrag();
-                    }
-                };
-                
-                canvas.addEventListener('mousedown', onStart);
-                canvas.addEventListener('touchstart', onStart, { passive: false });
-                
-                document.addEventListener('mousemove', onMove);
-                document.addEventListener('touchmove', onMove, { passive: false });
-                
-                document.addEventListener('mouseup', onEnd);
-                document.addEventListener('touchend', onEnd);
-                
-                canvas.addEventListener('contextmenu', e => e.preventDefault());
-
-                canvas.eventListeners = { onStart, onMove, onEnd };
-            },
-            
-            prevPage() {
-                if (this.currentPage > 0) {
-                    this.goToPage(this.currentPage - 1);
-                    Sound.play('click');
-                }
-            },
-            
-            nextPage() {
-                if (this.currentPage < 5) {
-                    this.goToPage(this.currentPage + 1);
-                    Sound.play('click');
-                }
-            },
-            
-            goToPage(page) {
-                const pages = document.querySelectorAll('.scent-page');
-                const dots = document.querySelectorAll('.page-dot');
-                
-                pages[this.currentPage].classList.remove('active');
-                pages[this.currentPage].classList.add('prev');
-                
-                pages[page].classList.remove('prev');
-                pages[page].classList.add('active');
-                
-                dots[this.currentPage].classList.remove('active');
-                dots[page].classList.add('active');
-                
-                this.currentPage = page;
-                
-                document.getElementById('scent-prev').style.opacity = page === 0 ? '0.3' : '1';
-                document.getElementById('scent-next').style.opacity = page === 5 ? '0.3' : '1';
-                
-                this.updateLabels();
-            },
-            
-            updateLabels() {
-                document.querySelectorAll('.scent-intro-box').forEach(introEl => {
-                    const scentId = introEl.dataset.scent;
-                    if (scentId) {
-                        introEl.classList.toggle('zh', I18N.lang === 'zh');
-                        const key = `${scentId}_desc`;
-                        introEl.textContent = I18N.t(key);
-                    }
-                });
-
-                this.scents.forEach(scent => {
-                    const el = document.querySelector(`[data-scent="${scent.id}"]`);
-                    if (el && el.classList.contains('lumen-name')) {
-                        el.textContent = scent[I18N.lang];
-                        el.className = `lumen-name ${I18N.lang === 'zh' ? 'zh' : ''}`;
-                    }
-                });
-                
-                document.querySelectorAll('.lumen-instruction').forEach(instr => {
-                    instr.textContent = I18N.lang === 'en' ? 'Drag outward from center' : '从中心向外拖动';
-                });
-            },
-            
-            cleanup() {
-                this.instances.forEach(instance => {
-                    const { onStart, onMove, onEnd } = instance.canvas.eventListeners || {};
-
-                    if (onStart) {
-                        instance.canvas.removeEventListener('mousedown', onStart);
-                        instance.canvas.removeEventListener('touchstart', onStart);
-                        document.removeEventListener('mousemove', onMove);
-                        document.removeEventListener('touchmove', onMove);
-                        document.removeEventListener('mouseup', onEnd);
-                        document.removeEventListener('touchend', onEnd);
-                    }
-                });
-                this.instances = [];
-            }
-        };
-        
+               // ========== LUMEN ORGANIC PARTICLES ENGINE (Refined Differentiation) ==========
         class LumenOrganicParticles {
             constructor(canvas, scent, parent) {
                 this.canvas = canvas;
@@ -2096,7 +1817,7 @@
                 this.dragAngle = 0;
                 this.dragDist = 0;
                 
-                const numParticles = 2000;
+                const numParticles = 1000;
                 const centerX = canvas.width / 2;
                 const centerY = canvas.height / 2;
                 
@@ -2104,52 +1825,37 @@
                     const layer = Math.random();
                     const angle = Math.random() * Math.PI * 2;
                     
-                    let radius, distribution, sizeBase;
+                    let radius, distribution;
                     
+                    // Re-engineered particle distribution for clearer aesthetic separation
                     switch(scent.shape) {
-                        case 'flower':
-                            const petalIndex = Math.floor(Math.random() * 6);
-                            const petalAngle = (petalIndex / 6) * Math.PI * 2;
-                            const petalOffset = Math.sin((angle - petalAngle) * 6) * 0.4 + 0.6;
-                            radius = Math.pow(Math.random(), 0.4) * 90 * petalOffset;
-                            distribution = Math.sin(angle * 6) * 0.4 + 0.8;
-                            sizeBase = 1.8;
+                        case 'flower': // Floral: Petal shape with higher central density and smooth movement
+                            radius = Math.pow(Math.random(), 0.5) * 60;
+                            distribution = Math.sin(angle * 5 + layer * Math.PI) * 0.2 + 0.8;
                             break;
-                        case 'trunk':
-                            const grainLayer = Math.floor(Math.random() * 15);
-                            const grainNoise = (Math.sin(angle * 20 + grainLayer * 0.5) + Math.cos(angle * 15)) * 0.15;
-                            radius = (grainLayer / 15) * 80 + grainNoise * 10 + Math.random() * 4;
-                            distribution = Math.abs(Math.sin(angle * 18 + grainLayer * 0.3)) * 0.3 + 0.75;
-                            sizeBase = 1.4;
+                        case 'trunk': // Woody: Inner texture lines, high angular density
+                            radius = Math.pow(Math.random(), 1.0) * 80;
+                            distribution = Math.abs(Math.sin(angle * 6)) * 0.4 + 0.6;
                             break;
-                        case 'burst':
-                            const burstRing = Math.floor(Math.random() * 8);
-                            radius = Math.pow(Math.random(), 0.25) * 95 * (0.7 + burstRing / 16);
+                        case 'burst': // Citrus: Radial explosion, thin, high velocity
+                            radius = Math.pow(Math.random(), 0.3) * 95;
                             distribution = 1;
-                            sizeBase = 1.6;
                             break;
-                        case 'moss':
-                            const mossCluster = Math.sin(angle * 7 + Math.random() * 3) * 0.3;
-                            radius = Math.pow(Math.random(), 0.8) * 75 + mossCluster * 15;
-                            distribution = (Math.sin(angle * 6) + Math.cos(angle * 9)) * 0.25 + 0.7;
-                            sizeBase = 2.2;
+                        case 'moss': // Earthy: Clustered, irregular shapes, slow, heavy movement
+                            radius = Math.pow(Math.random(), 0.8) * 55;
+                            distribution = (Math.sin(angle * 3) + Math.cos(angle * 9)) * 0.2 + 0.6;
                             break;
-                        case 'wave':
-                            const waveLayer = Math.floor(Math.random() * 8);
-                            radius = Math.pow(Math.random(), 0.65) * 65 * (0.5 + waveLayer / 16);
-                            distribution = Math.abs(Math.cos(angle * 5 + Math.sin(angle * 2) * 2)) * 0.35 + 0.7;
-                            sizeBase = 1.4;
+                        case 'wave': // Fresh: Fluid, horizontal flow pattern
+                            radius = Math.pow(Math.random(), 0.4) * 80;
+                            distribution = Math.abs(Math.cos(angle * 2 + Math.PI/2)) * 0.3 + 0.7;
                             break;
-                        case 'chili':
-                            const spiceIntensity = Math.pow(Math.random(), 0.5);
-                            radius = spiceIntensity * 80;
-                            distribution = Math.pow(Math.abs(Math.sin(angle * 10)), 1.5) * 0.6 + 0.5;
-                            sizeBase = 1.3;
+                        case 'chili': // Spicy: Sharp, highly radial, pointed geometry simulation
+                            radius = Math.pow(Math.random(), 0.6) * 75;
+                            distribution = Math.abs(Math.sin(angle * 7)) * 0.5 + 0.5;
                             break;
                         default:
                             radius = Math.pow(Math.random(), 0.6) * 70;
                             distribution = 1;
-                            sizeBase = 2.0;
                     }
                     
                     radius *= distribution;
@@ -2164,9 +1870,9 @@
                         y: y,
                         angle: angle,
                         radius: radius,
-                        size: Math.random() * sizeBase + 0.8,
-                        speedX: (Math.random() - 0.5) * 0.2,
-                        speedY: (Math.random() - 0.5) * 0.2,
+                        size: Math.random() * 2.5 + 0.6,
+                        speedX: (Math.random() - 0.5) * 0.15,
+                        speedY: (Math.random() - 0.5) * 0.15,
                         breathPhase: Math.random() * Math.PI * 2,
                         layer: layer,
                         energy: Math.random(),
@@ -2175,11 +1881,11 @@
                 }
             }
             
-            update(deltaTime = 16.6) {
-                this.time += deltaTime / 1000;
+            update() {
+                this.time += 0.016;
                 
                 const diff = this.targetIntensity - this.intensity;
-                this.intensity += diff * 0.12;
+                this.intensity += diff * 0.1; // Slightly faster interpolation for responsiveness
                 
                 const ctx = this.ctx;
                 const w = this.canvas.width;
@@ -2187,40 +1893,43 @@
                 const centerX = w / 2;
                 const centerY = h / 2;
                 
-                ctx.fillStyle = 'rgba(245, 245, 240, 0.95)';
+                // Clear with slight transparency for trail effect (improving perceived smoothness)
+                ctx.fillStyle = 'rgba(245, 245, 240, 0.9)'; 
                 ctx.fillRect(0, 0, w, h);
                 
                 const colors = this.scent.colors;
+                const baseGray = { r: 80, g: 80, b: 80 };
                 
-                const globalBreath = Math.sin(this.time * 0.5) * 0.5 + 0.5;
+                const globalBreath = Math.sin(this.time * 0.6) * 0.5 + 0.5;
                 
                 this.particles.forEach(p => {
-                    const breathe = Math.sin(this.time * 0.7 + p.breathPhase) * 0.5 + 0.5;
-                    const breathScale = 1 + (breathe * 0.1 + globalBreath * 0.05);
+                    const breathe = Math.sin(this.time * 0.8 + p.breathPhase) * 0.5 + 0.5;
+                    const breathScale = 1 + (breathe * 0.08 + globalBreath * 0.04);
                     
-                    const maxExpansion = this.scent.shape === 'wave' ? 1.8 : 2.5;
-                    const expansion = this.intensity * maxExpansion;
+                    const expansion = this.intensity * 1.8;
                     
                     let targetX = centerX + (p.baseX - centerX) * (1 + expansion) * breathScale;
                     let targetY = centerY + (p.baseY - centerY) * (1 + expansion) * breathScale;
                     
                     if (this.isDragging) {
-                        const dragInfluence = this.intensity * 0.6;
+                        const dragInfluence = this.intensity * 0.4;
                         const particleAngleToDrag = Math.atan2(p.baseY - centerY, p.baseX - centerX);
                         const angleDiff = Math.abs(particleAngleToDrag - this.dragAngle);
                         const angleProximity = Math.cos(angleDiff);
                         
-                        const dragForce = dragInfluence * angleProximity * (1 - p.layer * 0.5);
-                        targetX += Math.cos(this.dragAngle) * this.dragDist * dragForce * 180;
-                        targetY += Math.sin(this.dragAngle) * this.dragDist * dragForce * 180;
+                        const dragForce = dragInfluence * angleProximity * (1 - p.layer * 0.6);
+                        targetX += Math.cos(this.dragAngle) * this.dragDist * dragForce * 120;
+                        targetY += Math.sin(this.dragAngle) * this.dragDist * dragForce * 120;
                     }
                     
-                    p.x += (targetX - p.x) * 0.2 + p.speedX * (1 - this.intensity * 0.7);
-                    p.y += (targetY - p.y) * 0.2 + p.speedY * (1 - this.intensity * 0.7);
+                    // Smoother interpolation (improving perceived smoothness)
+                    p.x += (targetX - p.x) * 0.18 + p.speedX * (1 - this.intensity * 0.6); // Increased factor
+                    p.y += (targetY - p.y) * 0.18 + p.speedY * (1 - this.intensity * 0.6);
                     
                     let r, g, b;
-                    const energyBoost = p.energy * 0.2;
+                    const energyBoost = p.energy * 0.12;
                     
+                    // Interpolate color based on intensity (from color[0] light to color[2] dark)
                     if (this.intensity < 0.5) {
                         const t = this.intensity / 0.5;
                         r = colors[0].r + (colors[1].r - colors[0].r) * t;
@@ -2233,51 +1942,52 @@
                         b = colors[1].b + (colors[2].b - colors[1].b) * t;
                     }
                     
-                    r = Math.min(255, r + energyBoost * 30);
-                    g = Math.min(255, g + energyBoost * 25);
-                    b = Math.min(255, b + energyBoost * 20);
+                    r = Math.min(255, r + energyBoost * 18);
+                    g = Math.min(255, g + energyBoost * 12);
+                    b = Math.min(255, b + energyBoost * 8);
                     
-                    const baseSize = p.size * (0.8 + this.intensity * 2.0);
-                    const size = baseSize * (1 + breathe * 0.3) * (0.7 + p.layer * 0.6);
+                    const baseSize = p.size * (0.7 + this.intensity * 1.5);
+                    const size = baseSize * (1 + breathe * 0.2) * (0.75 + p.layer * 0.5);
                     
-                    const baseAlpha = 0.2 + this.intensity * 0.85;
-                    const alpha = baseAlpha * (0.6 + p.layer * 0.7);
+                    const baseAlpha = 0.1 + this.intensity * 0.75;
+                    const alpha = baseAlpha * (0.55 + p.layer * 0.7);
                     
                     ctx.fillStyle = `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${alpha})`;
                     ctx.beginPath();
                     ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
                     ctx.fill();
                     
-                    if (this.intensity > 0.4) {
-                        const glowAlpha = (this.intensity - 0.4) * 0.3 * alpha;
+                    if (this.intensity > 0.35) {
+                        const glowAlpha = (this.intensity - 0.35) * 0.3 * alpha;
                         ctx.fillStyle = `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${glowAlpha})`;
                         ctx.beginPath();
-                        ctx.arc(p.x, p.y, size * 4, 0, Math.PI * 2);
+                        ctx.arc(p.x, p.y, size * 3, 0, Math.PI * 2);
                         ctx.fill();
                     }
                     
-                    if (this.intensity > 0.75) {
-                        const outerGlow = (this.intensity - 0.75) * 0.2;
+                    if (this.intensity > 0.7) {
+                        const outerGlow = (this.intensity - 0.7) * 0.15;
                         ctx.fillStyle = `rgba(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)}, ${outerGlow})`;
                         ctx.beginPath();
-                        ctx.arc(p.x, p.y, size * 7, 0, Math.PI * 2);
+                        ctx.arc(p.x, p.y, size * 5, 0, Math.PI * 2);
                         ctx.fill();
                     }
                 });
                 
-                if (this.intensity > 0.7) {
-                    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 200);
-                    const c = colors[Math.min(2, Math.floor(this.intensity * 3))];
-                    const bloomIntensity = (this.intensity - 0.7) * 0.5;
+                if (this.intensity > 0.6) {
+                    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 150);
+                    const c = colors[Math.min(2, Math.floor(this.intensity * 2.8))];
+                    const bloomIntensity = (this.intensity - 0.6) * 0.4;
                     gradient.addColorStop(0, `rgba(${c.r}, ${c.g}, ${c.b}, ${bloomIntensity})`);
-                    gradient.addColorStop(0.5, `rgba(${c.r}, ${c.g}, ${c.b}, ${bloomIntensity * 0.3})`);
-                    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    gradient.addColorStop(0.5, `rgba(${c.r}, ${c.g}, ${c.b}, ${bloomIntensity * 0.35})`);
+                    gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
                     ctx.fillStyle = gradient;
                     ctx.fillRect(0, 0, w, h);
                 }
             }
         }
         
+        // ========== APP STATE MANAGEMENT ==========
         const App = {
             state: 'WELCOME',
             patient: {},
@@ -2289,48 +1999,21 @@
             
             screens: {
                 WELCOME: 'welcome-screen',
-                INFO: 'info-screen', 
                 SCENT: 'scent-screen',
                 MODULES: 'module-selection-screen',
                 GAME: 'game-screen',
                 RESULTS: 'results-screen'
             },
-
-            resetAllResources() {
-                LumenScent.cleanup();
-                if (GameEngine.module) {
-                    GameEngine.module.cleanup();
-                    GameEngine.module = null;
-                }
-            },
             
             setState(s) {
-                // Cleanup previous state
-                if (this.state === 'GAME' && GameEngine.module) {
-                    try {
-                        GameEngine.module.cleanup();
-                        GameEngine.module = null;
-                    } catch(e) {
-                        console.error('Cleanup error on state change:', e);
-                    }
-                }
-                
-                if (this.state === 'SCENT') {
-                    try {
-                        LumenScent.cleanup();
-                    } catch(e) {
-                        console.error('LumenScent cleanup error:', e);
-                    }
-                }
-                
                 document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+                
+                if (s === 'INFO') {
+                    s = 'SCENT';
+                }
                 
                 document.getElementById(this.screens[s]).classList.add('active');
                 this.state = s;
-                
-                document.getElementById('crystal-container').style.display = 'none';
-                document.getElementById('reflex-canvas').style.display = 'none';
-                document.getElementById('mod4-canvas').style.display = 'none';
                 
                 if (s === 'GAME') {
                     document.getElementById('game-ui').classList.add('active');
@@ -2340,33 +2023,24 @@
                     document.getElementById('game-ui').classList.remove('active');
                     document.getElementById('game-stats').classList.remove('active');
                     document.getElementById('back-btn').classList.remove('active');
-                    if (s !== 'SCENT') LumenScent.cleanup();
                 }
                 
                 if (s === 'SCENT') setTimeout(() => LumenScent.init(), 100);
                 if (s === 'MODULES') setTimeout(() => this.updateModules(), 10);
                 
-                try {
-                    Visual.setScene(s);
-                } catch(e) {
-                    console.error('Visual.setScene error:', e);
-                }
+                Visual.setScene(s);
             },
             
             startModule(id) {
                 this.current = id;
                 this.setState('GAME');
-                
-                setTimeout(() => {
-                    GameEngine.showTutorial(id);
-                }, 100);
+                GameEngine.showTutorial(id); // Show tutorial before starting the module
             },
             
             completeModule(id, data) {
                 this.completed.add(id);
                 this.modules[id] = data;
                 Sound.play('success');
-                Haptic.success();
                 this.setState('MODULES');
                 this.updateModules();
             },
@@ -2390,7 +2064,6 @@
                     cell.addEventListener('mouseenter', () => Sound.play('hover'));
                     cell.addEventListener('click', () => {
                         Sound.play('click');
-                        Haptic.medium();
                         this.startModule(id);
                     });
                     grid.appendChild(cell);
@@ -2408,7 +2081,7 @@
                 const container = document.getElementById('scent-wheel');
                 container.innerHTML = '';
                 const canvas = document.createElement('canvas');
-                const size = Math.min(400, container.clientWidth);
+                const size = Math.min(400, window.innerWidth - 40);
                 canvas.width = size;
                 canvas.height = size;
                 container.appendChild(canvas);
@@ -2419,7 +2092,7 @@
                 for (let i = 1; i <= 4; i++) {
                     ctx.beginPath();
                     ctx.arc(cx, cy, r * (i / 4), 0, Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(192, 38, 37, 0.2)';
+                    ctx.strokeStyle = 'rgba(192, 38, 37, 0.1)';
                     ctx.lineWidth = 1;
                     ctx.stroke();
                 }
@@ -2443,7 +2116,7 @@
                 ctx.lineWidth = 2.5;
                 ctx.stroke();
                 
-                ctx.strokeStyle = 'rgba(192, 38, 37, 0.15)';
+                ctx.strokeStyle = 'rgba(192, 38, 37, 0.12)';
                 ctx.lineWidth = 1;
                 cats.forEach((cat, i) => {
                     const angle = step * i - Math.PI / 2;
@@ -2453,7 +2126,6 @@
                     ctx.stroke();
                 });
                 
-                ctx.fillStyle = '#c02625';
                 cats.forEach((cat, i) => {
                     const angle = step * i - Math.PI / 2;
                     const val = this.scents[cat] / 100;
@@ -2462,6 +2134,7 @@
                     
                     ctx.beginPath();
                     ctx.arc(x, y, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = '#c02625';
                     ctx.fill();
                 });
                 
@@ -2477,91 +2150,6 @@
                 });
             },
 
-            drawReportVisualization() {
-                const data = Object.entries(this.modules).map(([id, d]) => {
-                    let normalizedScore = d.score;
-                    if (id === '5' && d.score > 0) { 
-                        normalizedScore = Math.min(100, Math.max(0, 100 - (d.score - 200) / 3));
-                    }
-                    return {
-                        module: MODULES[id].title[I18N.lang],
-                        score: normalizedScore,
-                        rawScore: d.score,
-                        id: id 
-                    };
-                });
-
-                const container = document.getElementById('report-visualization');
-                container.innerHTML = '';
-
-                const margin = { top: 20, right: 20, bottom: 60, left: 40 };
-                const width = container.clientWidth - margin.left - margin.right;
-                const height = container.clientHeight - margin.top - margin.bottom;
-
-                if (width <= 0 || height <= 0) return;
-
-                const svg = d3.select(container)
-                    .append("svg")
-                    .attr("width", width + margin.left + margin.right)
-                    .attr("height", height + margin.top + margin.bottom)
-                    .append("g")
-                    .attr("transform", `translate(${margin.left},${margin.top})`);
-
-                const x = d3.scaleBand()
-                    .domain(data.map(d => d.module))
-                    .range([0, width])
-                    .padding(0.1);
-
-                const y = d3.scaleLinear()
-                    .domain([0, 100])
-                    .range([height, 0]);
-                
-                const colorScale = d3.scaleSequential(d3.interpolateInferno).domain([0, 100]);
-
-                svg.append("g")
-                    .attr("transform", `translate(0,${height})`)
-                    .call(d3.axisBottom(x))
-                    .selectAll("text")
-                        .style("font-size", "10px")
-                        .style("text-anchor", "end")
-                        .attr("dx", "-.8em")
-                        .attr("dy", ".15em")
-                        .attr("transform", "rotate(-45)");
-
-                svg.append("g")
-                    .call(d3.axisLeft(y).tickFormat(d => `${d}%`))
-                    .selectAll("text")
-                    .style("fill", "#2a2a2a");
-
-                svg.selectAll(".bar")
-                    .data(data)
-                    .enter().append("rect")
-                    .attr("class", "bar")
-                    .attr("x", d => x(d.module))
-                    .attr("y", d => y(d.score))
-                    .attr("width", x.bandwidth())
-                    .attr("height", d => height - y(d.score))
-                    .attr("fill", d => colorScale(d.score))
-                    .on("mouseover", function(event, d) {
-                        d3.select(this).attr("opacity", 0.8);
-                        
-                        const tooltipText = d.id === '5' ? `${Math.round(d.rawScore)} ms RT` : `${Math.round(d.score)}% Eff.`;
-                        
-                        svg.append("text")
-                            .attr("id", "tooltip")
-                            .attr("x", x(d.module) + x.bandwidth() / 2)
-                            .attr("y", y(d.score) - 5)
-                            .attr("text-anchor", "middle")
-                            .style("font-size", "12px")
-                            .style("fill", "#c02625")
-                            .text(tooltipText);
-                    })
-                    .on("mouseout", function() {
-                        d3.select(this).attr("opacity", 1.0);
-                        d3.select("#tooltip").remove();
-                    });
-            },
-
             showResults() {
                 const summary = document.getElementById('results-summary');
                 summary.innerHTML = '';
@@ -2572,7 +2160,7 @@
                 const summaryData = [
                     { key: 'modules_completed', value: this.completed.size },
                     { key: 'total_time', value: Math.round(totalTime) + 's' },
-                    { key: 'avg_score', value: this.completed.has('5') ? 'N/A*' : Math.round(avgScore) }
+                    { key: 'avg_score', value: Math.round(avgScore) }
                 ];
                 
                 summaryData.forEach(item => {
@@ -2592,19 +2180,19 @@
                     const row = document.createElement('div');
                     row.className = 'detail-row';
                     const lang = I18N.lang;
-                    const scoreText = id === '5' ? `${Math.round(data.score)} ms RT` : `${Math.round(data.score)} pts`;
-
                     row.innerHTML = `
                         <span class="detail-label ${lang === 'zh' ? 'zh' : ''}">${MODULES[id].title[lang]}</span>
-                        <span class="detail-value">${scoreText} · ${Math.round(data.time)}s</span>
+                        <span class="detail-value">${data.score} pts · ${Math.round(data.time)}s</span>
                     `;
                     details.appendChild(row);
                 });
                 
+                // Complex scent recommendation
                 let rec = [];
                 const avgErrors = Object.values(this.modules).reduce((sum, d) => sum + (d.errors || 0), 0) / this.completed.size;
                 const scentValues = this.scents;
                 
+                // Cognitive performance-based recommendations
                 if (avgScore > 70) {
                     if (scentValues.floral > 60) rec.push('Jasmine');
                     if (scentValues.citrus > 60) rec.push('Bergamot');
@@ -2618,9 +2206,11 @@
                     rec.push('Frankincense');
                 }
                 
+                // Error-based adjustments
                 if (avgErrors > 10) rec.push('Chamomile');
                 if (avgErrors < 3 && !rec.includes('Bergamot')) rec.push('Lemon');
                 
+                // Preference-based additions
                 Object.entries(scentValues).forEach(([scent, value]) => {
                     if (value > 80) {
                         const map = {
@@ -2640,20 +2230,16 @@
                 document.getElementById('scent-result').textContent = rec.slice(0, 4).join(' + ');
                 
                 this.drawWheel();
-                this.drawReportVisualization();
             },
         };
         
+        // ========== VISUAL ENGINE (Performance Tweaks) ==========
         const Visual = {
             scene: null,
             camera: null,
             renderer: null,
             current: null,
             animating: false,
-            lastTime: 0,
-            animationFrameId: null,
-            errorCount: 0,
-            maxErrors: 10,
             
             init() {
                 try {
@@ -2666,28 +2252,22 @@
                     
                     this.renderer = new THREE.WebGLRenderer({
                         canvas: canvas,
-                        antialias: window.devicePixelRatio < 2,
+                        antialias: window.devicePixelRatio < 1.5,
                         alpha: true,
-                        powerPreference: 'high-performance',
-                        stencil: false,
-                        depth: true
+                        powerPreference: 'high-performance'
                     });
                     
                     this.renderer.setSize(window.innerWidth, window.innerHeight);
                     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
                     
-                    const throttledResize = PerformanceUtils.throttle(() => this.resize(), 250);
-                    window.addEventListener('resize', throttledResize);
+                    window.addEventListener('resize', () => this.resize());
                     
                     this.setScene('WELCOME');
-                    this.lastTime = performance.now();
-                    this.animating = true;
                     this.animate();
                     
                     return true;
                 } catch(e) {
                     console.error('Visual init error:', e);
-                    this.animating = false;
                     return false;
                 }
             },
@@ -2695,15 +2275,9 @@
             resize() {
                 if (!this.camera || !this.renderer) return;
                 
-                try {
-                    this.camera.aspect = window.innerWidth / window.innerHeight;
-                    this.camera.updateProjectionMatrix();
-                    this.renderer.setSize(window.innerWidth, window.innerHeight);
-                    
-                    if (App.state === 'RESULTS') App.drawReportVisualization(); 
-                } catch(e) {
-                    console.error('Resize error:', e);
-                }
+                this.camera.aspect = window.innerWidth / window.innerHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(window.innerWidth, window.innerHeight);
             },
             
             setScene(state) {
@@ -2721,7 +2295,7 @@
                         }
                     }
                     
-                    if (state === 'WELCOME' || state === 'INFO' || state === 'SCENT' || state === 'MODULES' || state === 'RESULTS') {
+                    if (state === 'WELCOME' || state === 'INFO' || state === 'SCENT' || state === 'MODULES') {
                         const geom = new THREE.BufferGeometry();
                         const particleCount = 500;
                         const pos = new Float32Array(particleCount * 3);
@@ -2735,10 +2309,10 @@
                         geom.setAttribute('position', new THREE.BufferAttribute(pos, 3));
                         
                         const mat = new THREE.PointsMaterial({ 
-                            size: 0.035, 
-                            color: 0xc02625, 
+                            size: 0.028, 
+                            color: 0x2a2a2a, 
                             transparent: true, 
-                            opacity: 0.4
+                            opacity: 0.38
                         });
                         
                         this.current = new THREE.Points(geom, mat);
@@ -2750,74 +2324,26 @@
             },
             
             animate() {
-                if (!this.animating) return;
-                
-                this.animationFrameId = requestAnimationFrame(() => this.animate());
-                
-                const now = performance.now();
-                let deltaTime = (now - this.lastTime) / 1000;
-                
-                // Prevent deltaTime anomalies
-                if (deltaTime <= 0 || deltaTime > 1 || !isFinite(deltaTime)) {
-                    deltaTime = 0.016; // Fallback to 60fps
+                if (!this.animating) {
+                    this.animating = true;
                 }
                 
-                this.lastTime = now;
+                requestAnimationFrame(() => this.animate());
                 
                 try {
                     if (this.current) {
-                        this.current.rotation.y += 0.05 * deltaTime;
-                        this.current.rotation.x += 0.02 * deltaTime;
-                    }
-
-                    if (App.state === 'GAME' && GameEngine.module) {
-                        GameEngine.update(GameEngine.stats, deltaTime);
-                    } else if (App.state === 'SCENT') {
-                        LumenScent.update(deltaTime);
+                        this.current.rotation.y += 0.0007;
+                        this.current.rotation.x += 0.0003;
                     }
                     
                     if (this.renderer && this.scene && this.camera) {
                         this.renderer.render(this.scene, this.camera);
                     }
-                    
-                    // Reset error count on successful frame
-                    this.errorCount = 0;
-                    
                 } catch(e) {
-                    console.error('Render/Update error:', e);
-                    this.errorCount++;
-                    
-                    // If too many errors, stop animation to prevent white screen
-                    if (this.errorCount >= this.maxErrors) {
-                        console.error('Too many render errors, stopping animation');
-                        this.stop();
-                        this.showRenderError();
-                    }
+                    console.error('Render error:', e);
                 }
-            },
-            
-            stop() {
-                this.animating = false;
-                if (this.animationFrameId) {
-                    cancelAnimationFrame(this.animationFrameId);
-                    this.animationFrameId = null;
-                }
-            },
-            
-            showRenderError() {
-                const errorDiv = document.createElement('div');
-                errorDiv.style.cssText = 'position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(255,255,255,0.95); padding: 2rem; border: 2px solid #c02625; z-index: 10000; text-align: center; max-width: 400px;';
-                errorDiv.innerHTML = `
-                    <h3 style="color: #c02625; margin-bottom: 1rem;">Rendering Error</h3>
-                    <p style="margin-bottom: 1rem;">The visualization has encountered an error.</p>
-                    <button onclick="location.reload()" style="padding: 0.8rem 2rem; background: #c02625; color: white; border: none; cursor: pointer; text-transform: uppercase;">
-                        Restart Session
-                    </button>
-                `;
-                document.body.appendChild(errorDiv);
             }
         };
-
         
         const GameEngine = {
             module: null,
