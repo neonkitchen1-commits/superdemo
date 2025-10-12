@@ -3358,286 +3358,293 @@
             }
         }
 
-       // MODULE 3: Pattern Recognition
+    // MODULE 3: Pattern Recognition
 class Module3 {
-    init() {
-        const difficulty = App.tOC;
-        this.group = new THREE.Group();
-        this.phase = 'stabilize';
-        this.stabilityTime = 0;
-        this.requiredStability = 3.5 - (difficulty / 100) * 1.5;
-        this.roundsComplete = 0;
-        this.totalRounds = 5;
-        this.isHolding = false;
-        this.touchCount = 0;
-        this.lastSoundTime = 0;
-        this.isActive = true;
-
-        // Visual effects properties
-        this.camera = Visual.camera;
-        if (this.camera) {
-            this.initialCameraPos = this.camera.position.clone();
+    validateDependencies() {
+        let isValid = true;
+        if (typeof App === 'undefined' || typeof App.tOC === 'undefined') {
+            console.error("Module3 CRITICAL: 'App' or 'App.tOC' is not available.");
+            isValid = false;
         }
-        this.shakeIntensity = 0;
-
-        const accentColor = new THREE.Color(0xc02625);
-        
-        // Create larger, more visible torus knot
-        const geom = new THREE.TorusKnotGeometry(2.0, 0.6, 128, 16);
-        this.mat = new THREE.ShaderMaterial({
-            uniforms: {
-                u_time: { value: 0 },
-                u_stability: { value: 0.0 }, 
-                u_color_unstable: { value: accentColor },
-                u_color_stable: { value: new THREE.Color(0xffffff) },
-                u_explosion: { value: 0.0 }
-            },
-            vertexShader: `
-                uniform float u_time;
-                uniform float u_stability;
-                uniform float u_explosion;
-                varying vec3 v_normal;
-                varying vec3 v_position;
-                
-                vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-                vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-                vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
-                vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
-                float snoise(vec3 v) { 
-                    const vec2 C = vec2(1.0/6.0, 1.0/3.0);
-                    const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
-                    vec3 i = floor(v + dot(v, C.yyy));
-                    vec3 x0 = v - i + dot(i, C.xxx);
-                    vec3 g = step(x0.yzx, x0.xyz);
-                    vec3 l = 1.0 - g;
-                    vec3 i1 = min(g.xyz, l.zxy);
-                    vec3 i2 = max(g.xyz, l.zxy);
-                    vec3 x1 = x0 - i1 + C.xxx;
-                    vec3 x2 = x0 - i2 + C.yyy;
-                    vec3 x3 = x0 - D.yyy;
-                    i = mod289(i);
-                    vec4 p = permute(permute(permute(i.z + vec4(0.0, i1.z, i2.z, 1.0)) + i.y + vec4(0.0, i1.y, i2.y, 1.0)) + i.x + vec4(0.0, i1.x, i2.x, 1.0));
-                    float n_ = 0.142857142857;
-                    vec3 ns = n_ * D.wyz - D.xzx;
-                    vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
-                    vec4 x_ = floor(j * ns.z);
-                    vec4 y_ = floor(j - 7.0 * x_);
-                    vec4 x = x_ * ns.x + ns.yyyy;
-                    vec4 y = y_ * ns.x + ns.yyyy;
-                    vec4 h = 1.0 - abs(x) - abs(y);
-                    vec4 b0 = vec4(x.xy, y.xy);
-                    vec4 b1 = vec4(x.zw, y.zw);
-                    vec4 s0 = floor(b0)*2.0 + 1.0;
-                    vec4 s1 = floor(b1)*2.0 + 1.0;
-                    vec4 sh = -step(h, vec4(0.0));
-                    vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
-                    vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
-                    vec3 p0 = vec3(a0.xy,h.x);
-                    vec3 p1 = vec3(a0.zw,h.y);
-                    vec3 p2 = vec3(a1.xy,h.z);
-                    vec3 p3 = vec3(a1.zw,h.w);
-                    vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
-                    p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
-                    vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
-                    m = m * m;
-                    return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
-                }
-
-                void main() {
-                    v_normal = normal;
-                    v_position = position;
-                    float instability = 1.0 - u_stability;
-                    float displacement = pow(instability, 2.0) * 0.3;
-                    float noise_speed = u_time * 1.5;
-                    float pulse = sin(u_time * 3.0) * 0.05 * instability; // Added pulse effect
-                    vec3 newPosition = position + normal * (snoise(position * 3.0 + noise_speed) * displacement + pulse);
-                    
-                    float explosion_scale = pow(u_explosion, 1.5) * 1.5;
-                    newPosition += normalize(position) * explosion_scale;
-                    
-                    gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
-                }
-            `,
-            fragmentShader: `
-                uniform float u_time;
-                uniform float u_stability;
-                uniform float u_explosion;
-                uniform vec3 u_color_unstable;
-                uniform vec3 u_color_stable;
-                varying vec3 v_normal;
-                varying vec3 v_position;
-
-                // snoise function copied here for fragment shader use
-                vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-                vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-                vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
-                vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
-                float snoise(vec3 v) { 
-                    const vec2 C = vec2(1.0/6.0, 1.0/3.0);
-                    const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
-                    vec3 i = floor(v + dot(v, C.yyy));
-                    vec3 x0 = v - i + dot(i, C.xxx);
-                    vec3 g = step(x0.yzx, x0.xyz);
-                    vec3 l = 1.0 - g;
-                    vec3 i1 = min(g.xyz, l.zxy);
-                    vec3 i2 = max(g.xyz, l.zxy);
-                    vec3 x1 = x0 - i1 + C.xxx;
-                    vec3 x2 = x0 - i2 + C.yyy;
-                    vec3 x3 = x0 - D.yyy;
-                    i = mod289(i);
-                    vec4 p = permute(permute(permute(i.z + vec4(0.0, i1.z, i2.z, 1.0)) + i.y + vec4(0.0, i1.y, i2.y, 1.0)) + i.x + vec4(0.0, i1.x, i2.x, 1.0));
-                    float n_ = 0.142857142857;
-                    vec3 ns = n_ * D.wyz - D.xzx;
-                    vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
-                    vec4 x_ = floor(j * ns.z);
-                    vec4 y_ = floor(j - 7.0 * x_);
-                    vec4 x = x_ * ns.x + ns.yyyy;
-                    vec4 y = y_ * ns.x + ns.yyyy;
-                    vec4 h = 1.0 - abs(x) - abs(y);
-                    vec4 b0 = vec4(x.xy, y.xy);
-                    vec4 b1 = vec4(x.zw, y.zw);
-                    vec4 s0 = floor(b0)*2.0 + 1.0;
-                    vec4 s1 = floor(b1)*2.0 + 1.0;
-                    vec4 sh = -step(h, vec4(0.0));
-                    vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
-                    vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
-                    vec3 p0 = vec3(a0.xy,h.x);
-                    vec3 p1 = vec3(a0.zw,h.y);
-                    vec3 p2 = vec3(a1.xy,h.z);
-                    vec3 p3 = vec3(a1.zw,h.w);
-                    vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
-                    p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
-                    vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
-                    m = m * m;
-                    return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
-                }
-
-                void main() {
-                    vec3 viewDir = normalize(cameraPosition - v_position);
-                    float fresnel = 1.0 - dot(normalize(v_normal), viewDir);
-                    fresnel = pow(fresnel, 2.0); // Make fresnel more prominent
-                    
-                    vec3 final_color = mix(u_color_unstable, u_color_stable, u_stability);
-                    
-                    // Enhanced stable glow effect
-                    float stableGlowAmount = pow(u_stability, 4.0);
-                    vec3 glow_color = mix(u_color_unstable, vec3(1.0, 1.0, 1.0), 0.5);
-                    final_color += fresnel * glow_color * stableGlowAmount * 2.5;
-                    
-                    // New energy flow pattern for unstable state
-                    float energyFlow = snoise(v_position * 2.5 + vec3(u_time * 0.8, 0.0, 0.0));
-                    energyFlow = pow(abs(energyFlow), 4.0);
-                    final_color += u_color_unstable * energyFlow * (1.0 - u_stability) * 0.6;
-
-                    // Enhanced explosion effect
-                    vec3 explosion_base_color = vec3(1.0, 0.8, 0.6) * u_explosion * 3.0;
-                    vec3 explosion_core_color = vec3(1.0, 1.0, 1.0) * pow(u_explosion, 2.0) * 1.5;
-                    vec3 explosion_color = mix(explosion_base_color, explosion_core_color, u_explosion);
-                    final_color = mix(final_color, explosion_color, pow(u_explosion, 0.7));
-
-                    gl_FragColor = vec4(final_color, 1.0 - u_explosion * 0.3);
-                }
-            `
-        });
-        this.core = new THREE.Mesh(geom, this.mat);
-        this.group.add(this.core);
-        
-        // Add stronger lighting
-        const light1 = new THREE.PointLight(0xffffff, 2.0, 100);
-        light1.position.set(5, 5, 5);
-        this.group.add(light1);
-        
-        const light2 = new THREE.PointLight(0xff5555, 1.5, 100);
-        light2.position.set(-5, -5, 5);
-        this.group.add(light2);
-        
-        this.group.add(new THREE.AmbientLight(0xffffff, 0.8));
-        
-        // Position group properly
-        this.group.position.z = 0;
-        
+        if (typeof Visual === 'undefined' || !Visual.scene || !Visual.camera) {
+            console.error("Module3 CRITICAL: 'Visual', 'Visual.scene', or 'Visual.camera' is not available.");
+            isValid = false;
+        }
         this.countdownEl = document.getElementById('pattern-countdown');
+        const questionOverlay = document.getElementById('question-overlay');
+        if (!this.countdownEl || !questionOverlay) {
+            console.error("Module3 CRITICAL: UI elements 'pattern-countdown' or 'question-overlay' not found in the DOM.");
+            isValid = false;
+        }
+        return isValid;
+    }
 
-        // Ensure Visual.scene exists and add group
-        if (Visual.scene) {
+    init() {
+        try {
+            if (!this.validateDependencies()) {
+                console.error("Module3 initialization aborted due to missing dependencies.");
+                return;
+            }
+
+            const difficulty = App.tOC;
+            this.group = new THREE.Group();
+            this.phase = 'intro'; // Start with an intro phase
+            this.introTime = 0;
+            this.stabilityTime = 0;
+            this.requiredStability = 3.5 - (difficulty / 100) * 1.5;
+            this.roundsComplete = 0;
+            this.totalRounds = 5;
+            this.isHolding = false;
+            this.touchCount = 0;
+            this.lastSoundTime = 0;
+            this.isActive = true;
+
+            this.camera = Visual.camera;
+            this.initialCameraPos = this.camera.position.clone();
+            this.shakeIntensity = 0;
+
+            const accentColor = new THREE.Color(0xc02625);
+
+            const geom = new THREE.TorusKnotGeometry(2.0, 0.6, 128, 16);
+            this.mat = new THREE.ShaderMaterial({
+                transparent: true,
+                uniforms: {
+                    u_time: { value: 0 },
+                    u_stability: { value: 0.0 },
+                    u_color_unstable: { value: accentColor },
+                    u_color_stable: { value: new THREE.Color(0xffffff) },
+                    u_explosion: { value: 0.0 },
+                    u_opacity: { value: 0.0 }
+                },
+                vertexShader: `
+                    uniform float u_time;
+                    uniform float u_stability;
+                    uniform float u_explosion;
+                    varying vec3 v_normal;
+                    varying vec3 v_position;
+                    
+                    vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+                    vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+                    vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+                    vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+                    float snoise(vec3 v) { 
+                        const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+                        const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+                        vec3 i = floor(v + dot(v, C.yyy));
+                        vec3 x0 = v - i + dot(i, C.xxx);
+                        vec3 g = step(x0.yzx, x0.xyz);
+                        vec3 l = 1.0 - g;
+                        vec3 i1 = min(g.xyz, l.zxy);
+                        vec3 i2 = max(g.xyz, l.zxy);
+                        vec3 x1 = x0 - i1 + C.xxx;
+                        vec3 x2 = x0 - i2 + C.yyy;
+                        vec3 x3 = x0 - D.yyy;
+                        i = mod289(i);
+                        vec4 p = permute(permute(permute(i.z + vec4(0.0, i1.z, i2.z, 1.0)) + i.y + vec4(0.0, i1.y, i2.y, 1.0)) + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+                        float n_ = 0.142857142857;
+                        vec3 ns = n_ * D.wyz - D.xzx;
+                        vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+                        vec4 x_ = floor(j * ns.z);
+                        vec4 y_ = floor(j - 7.0 * x_);
+                        vec4 x = x_ * ns.x + ns.yyyy;
+                        vec4 y = y_ * ns.x + ns.yyyy;
+                        vec4 h = 1.0 - abs(x) - abs(y);
+                        vec4 b0 = vec4(x.xy, y.xy);
+                        vec4 b1 = vec4(x.zw, y.zw);
+                        vec4 s0 = floor(b0)*2.0 + 1.0;
+                        vec4 s1 = floor(b1)*2.0 + 1.0;
+                        vec4 sh = -step(h, vec4(0.0));
+                        vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+                        vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+                        vec3 p0 = vec3(a0.xy,h.x);
+                        vec3 p1 = vec3(a0.zw,h.y);
+                        vec3 p2 = vec3(a1.xy,h.z);
+                        vec3 p3 = vec3(a1.zw,h.w);
+                        vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+                        p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+                        vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+                        m = m * m;
+                        return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+                    }
+
+                    void main() {
+                        v_normal = normal;
+                        v_position = position;
+                        float instability = 1.0 - u_stability;
+                        float displacement = pow(instability, 2.0) * 0.3;
+                        float noise_speed = u_time * 1.5;
+                        float pulse = sin(u_time * 3.0) * 0.05 * instability;
+                        vec3 newPosition = position + normal * (snoise(position * 3.0 + noise_speed) * displacement + pulse);
+                        
+                        float explosion_scale = pow(u_explosion, 1.5) * 1.5;
+                        newPosition += normalize(position) * explosion_scale;
+                        
+                        gl_Position = projectionMatrix * modelViewMatrix * vec4(newPosition, 1.0);
+                    }
+                `,
+                fragmentShader: `
+                    uniform float u_time;
+                    uniform float u_stability;
+                    uniform float u_explosion;
+                    uniform vec3 u_color_unstable;
+                    uniform vec3 u_color_stable;
+                    uniform float u_opacity;
+                    varying vec3 v_normal;
+                    varying vec3 v_position;
+
+                    vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+                    vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+                    vec4 permute(vec4 x) { return mod289(((x*34.0)+1.0)*x); }
+                    vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
+                    float snoise(vec3 v) { 
+                        const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+                        const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+                        vec3 i = floor(v + dot(v, C.yyy));
+                        vec3 x0 = v - i + dot(i, C.xxx);
+                        vec3 g = step(x0.yzx, x0.xyz);
+                        vec3 l = 1.0 - g;
+                        vec3 i1 = min(g.xyz, l.zxy);
+                        vec3 i2 = max(g.xyz, l.zxy);
+                        vec3 x1 = x0 - i1 + C.xxx;
+                        vec3 x2 = x0 - i2 + C.yyy;
+                        vec3 x3 = x0 - D.yyy;
+                        i = mod289(i);
+                        vec4 p = permute(permute(permute(i.z + vec4(0.0, i1.z, i2.z, 1.0)) + i.y + vec4(0.0, i1.y, i2.y, 1.0)) + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+                        float n_ = 0.142857142857;
+                        vec3 ns = n_ * D.wyz - D.xzx;
+                        vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+                        vec4 x_ = floor(j * ns.z);
+                        vec4 y_ = floor(j - 7.0 * x_);
+                        vec4 x = x_ * ns.x + ns.yyyy;
+                        vec4 y = y_ * ns.x + ns.yyyy;
+                        vec4 h = 1.0 - abs(x) - abs(y);
+                        vec4 b0 = vec4(x.xy, y.xy);
+                        vec4 b1 = vec4(x.zw, y.zw);
+                        vec4 s0 = floor(b0)*2.0 + 1.0;
+                        vec4 s1 = floor(b1)*2.0 + 1.0;
+                        vec4 sh = -step(h, vec4(0.0));
+                        vec4 a0 = b0.xzyw + s0.xzyw*sh.xxyy;
+                        vec4 a1 = b1.xzyw + s1.xzyw*sh.zzww;
+                        vec3 p0 = vec3(a0.xy,h.x);
+                        vec3 p1 = vec3(a0.zw,h.y);
+                        vec3 p2 = vec3(a1.xy,h.z);
+                        vec3 p3 = vec3(a1.zw,h.w);
+                        vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2, p2), dot(p3,p3)));
+                        p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+                        vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+                        m = m * m;
+                        return 42.0 * dot(m*m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+                    }
+
+                    void main() {
+                        vec3 viewDir = normalize(cameraPosition - v_position);
+                        float fresnel = 1.0 - dot(normalize(v_normal), viewDir);
+                        fresnel = pow(fresnel, 2.0);
+                        
+                        vec3 final_color = mix(u_color_unstable, u_color_stable, u_stability);
+                        
+                        float stableGlowAmount = pow(u_stability, 4.0);
+                        vec3 glow_color = mix(u_color_unstable, vec3(1.0, 1.0, 1.0), 0.5);
+                        final_color += fresnel * glow_color * stableGlowAmount * 2.5;
+                        
+                        float energyFlow = snoise(v_position * 2.5 + vec3(u_time * 0.8, 0.0, 0.0));
+                        energyFlow = pow(abs(energyFlow), 4.0);
+                        final_color += u_color_unstable * energyFlow * (1.0 - u_stability) * 0.6;
+
+                        vec3 explosion_base_color = vec3(1.0, 0.8, 0.6) * u_explosion * 3.0;
+                        vec3 explosion_core_color = vec3(1.0, 1.0, 1.0) * pow(u_explosion, 2.0) * 1.5;
+                        vec3 explosion_color = mix(explosion_base_color, explosion_core_color, u_explosion);
+                        final_color = mix(final_color, explosion_color, pow(u_explosion, 0.7));
+
+                        gl_FragColor = vec4(final_color, (1.0 - u_explosion * 0.3) * u_opacity);
+                    }
+                `
+            });
+            this.core = new THREE.Mesh(geom, this.mat);
+            this.group.add(this.core);
+
+            const light1 = new THREE.PointLight(0xffffff, 2.0, 100);
+            light1.position.set(5, 5, 5);
+            this.group.add(light1);
+            const light2 = new THREE.PointLight(0xff5555, 1.5, 100);
+            light2.position.set(-5, -5, 5);
+            this.group.add(light2);
+            this.group.add(new THREE.AmbientLight(0xffffff, 0.8));
+
+            this.group.position.z = 0;
+            this.group.visible = false; // Start invisible
             Visual.scene.add(this.group);
             console.log('Module3: Group added to scene');
-        } else {
-            console.error('Module3: Visual.scene not found!');
-        }
-        
-        // Randomize question bank for each session
-        this.questionBank = [
-            { q_en: "Which doesn't belong: Rose, Tulip, Oak, Daisy?", q_zh: "哪个不属于:玫瑰、郁金香、橡树、雏菊?", a_en: ["Rose", "Tulip", "Oak", "Daisy"], a_zh: ["玫瑰", "郁金香", "橡树", "雏菊"], correct: 2 },
-            { q_en: "Odd one out: Apple, Orange, Carrot, Banana?", q_zh: "哪个不同:苹果、橙子、胡萝卜、香蕉?", a_en: ["Apple", "Orange", "Carrot", "Banana"], a_zh: ["苹果", "橙子", "胡萝卜", "香蕉"], correct: 2 },
-            { q_en: "Which is not a mammal: Dolphin, Shark, Whale, Seal?", q_zh: "哪个不是哺乳动物:海豚、鲨鱼、鲸鱼、海豹?", a_en: ["Dolphin", "Shark", "Whale", "Seal"], a_zh: ["海豚", "鲨鱼", "鲸鱼", "海豹"], correct: 1 },
-            { q_en: "Which is a reptile: Frog, Lizard, Salamander, Toad?", q_zh: "哪个是爬行动物:青蛙、蜥蜴、蝾螈、蟾蜍?", a_en: ["Frog", "Lizard", "Salamander", "Toad"], a_zh: ["青蛙", "蜥蜴", "蝾螈", "蟾蜍"], correct: 1 },
-            { q_en: "Odd tool: Hammer, Screwdriver, Wrench, Pencil?", q_zh: "奇怪的工具:锤子、螺丝刀、扳手、铅笔?", a_en: ["Hammer", "Screwdriver", "Wrench", "Pencil"], a_zh: ["锤子", "螺丝刀", "扳手", "铅笔"], correct: 3 },
-            { q_en: "Which is not a color: Red, Loud, Blue, Green?", q_zh: "哪个不是颜色:红色、响亮、蓝色、绿色?", a_en: ["Red", "Loud", "Blue", "Green"], a_zh: ["红色", "响亮", "蓝色", "绿色"], correct: 1 },
-            { q_en: "Odd one: Circle, Square, Triangle, Book?", q_zh: "哪个不同:圆形、正方形、三角形、书?", a_en: ["Circle", "Square", "Triangle", "Book"], a_zh: ["圆形", "正方形", "三角形", "书"], correct: 3 },
-            { q_en: "Which is not a beverage: Water, Coffee, Sandwich, Tea?", q_zh: "哪个不是饮料:水、咖啡、三明治、茶?", a_en: ["Water", "Coffee", "Sandwich", "Tea"], a_zh: ["水", "咖啡", "三明治", "茶"], correct: 2 },
-        ];
-        
-        // Shuffle and select 5 random questions
-        this.selectedQuestions = this.shuffleArray([...this.questionBank]).slice(0, 5);
-        
-        this.timeLimit = 10 - (difficulty / 100) * 5; 
-        this.questionStartTime = 0;
-        
-        this.onDown = (e) => { 
-            const isTouch = e.type === 'touchstart';
-            if (isTouch) {
-                this.touchCount = e.touches.length;
-                if (e.touches.length >= 2) { 
+
+            this.questionBank = [
+                { q_en: "Which doesn't belong: Rose, Tulip, Oak, Daisy?", q_zh: "哪个不属于:玫瑰、郁金香、橡树、雏菊?", a_en: ["Rose", "Tulip", "Oak", "Daisy"], a_zh: ["玫瑰", "郁金香", "橡树", "雏菊"], correct: 2 },
+                { q_en: "Odd one out: Apple, Orange, Carrot, Banana?", q_zh: "哪个不同:苹果、橙子、胡萝卜、香蕉?", a_en: ["Apple", "Orange", "Carrot", "Banana"], a_zh: ["苹果", "橙子", "胡萝卜", "香蕉"], correct: 2 },
+                { q_en: "Which is not a mammal: Dolphin, Shark, Whale, Seal?", q_zh: "哪个不是哺乳动物:海豚、鲨鱼、鲸鱼、海豹?", a_en: ["Dolphin", "Shark", "Whale", "Seal"], a_zh: ["海豚", "鲨鱼", "鲸鱼", "海豹"], correct: 1 },
+                { q_en: "Which is a reptile: Frog, Lizard, Salamander, Toad?", q_zh: "哪个是爬行动物:青蛙、蜥蜴、蝾螈、蟾蜍?", a_en: ["Frog", "Lizard", "Salamander", "Toad"], a_zh: ["青蛙", "蜥蜴", "蝾螈", "蟾蜍"], correct: 1 },
+                { q_en: "Odd tool: Hammer, Screwdriver, Wrench, Pencil?", q_zh: "奇怪的工具:锤子、螺丝刀、扳手、铅笔?", a_en: ["Hammer", "Screwdriver", "Wrench", "Pencil"], a_zh: ["锤子", "螺丝刀", "扳手", "铅笔"], correct: 3 },
+                { q_en: "Which is not a color: Red, Loud, Blue, Green?", q_zh: "哪个不是颜色:红色、响亮、蓝色、绿色?", a_en: ["Red", "Loud", "Blue", "Green"], a_zh: ["红色", "响亮", "蓝色", "绿色"], correct: 1 },
+                { q_en: "Odd one: Circle, Square, Triangle, Book?", q_zh: "哪个不同:圆形、正方形、三角形、书?", a_en: ["Circle", "Square", "Triangle", "Book"], a_zh: ["圆形", "正方形", "三角形", "书"], correct: 3 },
+                { q_en: "Which is not a beverage: Water, Coffee, Sandwich, Tea?", q_zh: "哪个不是饮料:水、咖啡、三明治、茶?", a_en: ["Water", "Coffee", "Sandwich", "Tea"], a_zh: ["水", "咖啡", "三明治", "茶"], correct: 2 },
+            ];
+
+            this.selectedQuestions = this.shuffleArray([...this.questionBank]).slice(0, 5);
+            this.timeLimit = 10 - (difficulty / 100) * 5;
+            this.questionStartTime = 0;
+
+            this.onDown = (e) => {
+                if (this.phase !== 'stabilize') return;
+                const isTouch = e.type === 'touchstart';
+                if (isTouch) {
+                    this.touchCount = e.touches.length;
+                    if (e.touches.length >= 2) {
+                        this.isHolding = true;
+                        if (!this.stabilityTime && this.isActive) Sound.start('module3_unstable', 'C1', 0.1);
+                        e.preventDefault();
+                    }
+                } else {
                     this.isHolding = true;
                     if (!this.stabilityTime && this.isActive) Sound.start('module3_unstable', 'C1', 0.1);
+                }
+            };
+            this.onUp = (e) => {
+                const isTouch = e.type === 'touchend' || e.type === 'touchcancel';
+                if (isTouch) {
+                    const remainingTouches = e.touches ? e.touches.length : 0;
+                    if (remainingTouches < 2) {
+                        this.isHolding = false;
+                        this.touchCount = remainingTouches;
+                        if (this.isActive) Sound.release('module3_unstable');
+                    }
+                } else {
+                    this.isHolding = false;
+                    if (this.isActive) Sound.release('module3_unstable');
+                }
+            };
+            this.onTouchChange = (e) => {
+                if (this.phase !== 'stabilize') return;
+                if (e.type === 'touchmove' && e.touches.length >= 2) {
+                    if (!this.isHolding) {
+                        this.isHolding = true;
+                        if (!this.stabilityTime && this.isActive) Sound.start('module3_unstable', 'C1', 0.1);
+                    }
                     e.preventDefault();
                 }
-            } else {
-                this.isHolding = true;
-                if (!this.stabilityTime && this.isActive) Sound.start('module3_unstable', 'C1', 0.1);
-            }
-        };
-        this.onUp = (e) => { 
-            const isTouch = e.type === 'touchend' || e.type === 'touchcancel';
-            if (isTouch) {
-                const remainingTouches = e.touches ? e.touches.length : 0;
-                if (remainingTouches < 2) {
-                    this.isHolding = false;
-                    this.touchCount = remainingTouches;
-                    if(this.isActive) Sound.release('module3_unstable');
-                }
-            } else {
-                this.isHolding = false;
-                if(this.isActive) Sound.release('module3_unstable');
-            }
-        };
-        
-        this.onTouchChange = (e) => {
-            if (e.type === 'touchmove' && e.touches.length >= 2) {
-                if (!this.isHolding) {
-                    this.isHolding = true;
-                    if (!this.stabilityTime && this.isActive) Sound.start('module3_unstable', 'C1', 0.1);
-                }
-                e.preventDefault();
-            }
-        };
-        
-        document.addEventListener('mousedown', this.onDown);
-        document.addEventListener('mouseup', this.onUp);
-        document.addEventListener('touchstart', this.onDown, { passive: false });
-        document.addEventListener('touchend', this.onUp);
-        document.addEventListener('touchcancel', this.onUp);
-        document.addEventListener('touchmove', this.onTouchChange, { passive: false });
-        
-        console.log('Module3 initialized:', {
-            totalRounds: this.totalRounds,
-            questionsSelected: this.selectedQuestions.length,
-            requiredStability: this.requiredStability,
-            timeLimit: this.timeLimit
-        });
+            };
+
+            document.addEventListener('mousedown', this.onDown);
+            document.addEventListener('mouseup', this.onUp);
+            document.addEventListener('touchstart', this.onDown, { passive: false });
+            document.addEventListener('touchend', this.onUp);
+            document.addEventListener('touchcancel', this.onUp);
+            document.addEventListener('touchmove', this.onTouchChange, { passive: false });
+
+            console.log('Module3 initialized successfully');
+        } catch (e) {
+            console.error("A CRITICAL ERROR occurred during Module3 init:", e);
+            this.isActive = false; // Stop the module from running
+        }
     }
-    
+
     shuffleArray(array) {
         const shuffled = [...array];
         for (let i = shuffled.length - 1; i > 0; i--) {
@@ -3646,26 +3653,19 @@ class Module3 {
         }
         return shuffled;
     }
-    
+
     showQuestion() {
         if (!this.isActive) return;
-        
-        // Check if all questions completed
         if (this.roundsComplete >= this.totalRounds) {
-            console.log('Module3: All questions completed!');
             setTimeout(() => GameEngine.complete(), 500);
             return;
         }
-
         const q = this.selectedQuestions[this.roundsComplete];
         const overlay = document.getElementById('question-overlay');
-        
         const lang = I18N.lang;
         document.getElementById('question-text').textContent = q[`q_${lang}`];
-        
         const optionsDiv = document.getElementById('answer-options');
         optionsDiv.innerHTML = '';
-        
         const answers = q[`a_${lang}`];
         answers.forEach((ans, idx) => {
             const btn = document.createElement('button');
@@ -3679,14 +3679,9 @@ class Module3 {
                     this.roundsComplete++;
                     overlay.classList.remove('active');
                     this.countdownEl.classList.remove('active');
-                    
-                    console.log(`Module3: Correct answer! Round ${this.roundsComplete}/${this.totalRounds}`);
-                    
                     if (this.roundsComplete >= this.totalRounds) {
-                        console.log('Module3: Completing module...');
                         setTimeout(() => GameEngine.complete(), 500);
                     } else {
-                        console.log('Module3: Moving to next question...');
                         this.phase = 'stabilize';
                         this.stabilityTime = 0;
                         this.mat.uniforms.u_explosion.value = 0;
@@ -3696,38 +3691,42 @@ class Module3 {
                     Haptic.error();
                     GameEngine.stats.errors++;
                     GameEngine.stats.score = Math.max(0, GameEngine.stats.score - 15);
-                    // Don't advance round on wrong answer - they need to try again
-                    console.log('Module3: Wrong answer, try again');
                 }
             });
             optionsDiv.appendChild(btn);
         });
-        
         overlay.classList.add('active');
         this.countdownEl.classList.add('active');
         this.questionStartTime = Date.now();
-        
-        console.log(`Module3: Showing question ${this.roundsComplete + 1}/${this.totalRounds}`);
     }
     
+    updateIntroPhase(deltaTime) {
+        this.group.visible = true;
+        this.introTime += deltaTime;
+        const introDuration = 1.5;
+        this.mat.uniforms.u_opacity.value = Math.min(1.0, this.introTime / introDuration);
+        if (this.introTime >= introDuration) {
+            this.phase = 'stabilize';
+            console.log("Module3: Intro complete. Starting interaction.");
+        }
+    }
+
     updateStabilizePhase(stats, deltaTime) {
         this.mat.uniforms.u_explosion.value = Math.max(0, this.mat.uniforms.u_explosion.value - deltaTime * 2);
-        
         if (this.isHolding) {
             this.stabilityTime = Math.min(this.requiredStability, this.stabilityTime + deltaTime * 1.2);
-            this.shakeIntensity = Math.max(0, this.shakeIntensity - deltaTime * 0.8); // Reduce shake
+            this.shakeIntensity = Math.max(0, this.shakeIntensity - deltaTime * 0.8);
             if (stats.time > this.lastSoundTime + 0.15 && Sound.synths.module3_unstable) {
                 Sound.synths.module3_unstable.frequency.rampTo(100 + this.stabilityTime * 60, 0.2);
                 this.lastSoundTime = stats.time;
             }
         } else {
             this.stabilityTime = Math.max(0, this.stabilityTime - deltaTime * 2.5);
-            this.shakeIntensity = Math.min(0.15, this.shakeIntensity + deltaTime * 0.2); // Increase shake
+            this.shakeIntensity = Math.min(0.15, this.shakeIntensity + deltaTime * 0.2);
             if (Sound.synths.module3_unstable) {
                 Sound.synths.module3_unstable.frequency.rampTo(80, 0.5);
             }
         }
-        
         if (this.stabilityTime >= this.requiredStability) {
             this.phase = 'answer';
             Sound.release('module3_unstable');
@@ -3743,10 +3742,8 @@ class Module3 {
         if (this.countdownEl) {
             this.countdownEl.textContent = Math.ceil(remaining);
         }
-
         this.mat.uniforms.u_explosion.value = Math.max(0, this.mat.uniforms.u_explosion.value - deltaTime * 1.2);
-        this.shakeIntensity = Math.max(0, this.shakeIntensity - deltaTime * 0.8); // Reduce shake
-        
+        this.shakeIntensity = Math.max(0, this.shakeIntensity - deltaTime * 0.8);
         if (elapsed > this.timeLimit) {
             GameEngine.stats.errors++;
             GameEngine.stats.score = Math.max(0, GameEngine.stats.score - 20);
@@ -3756,11 +3753,7 @@ class Module3 {
             this.phase = 'stabilize';
             this.stabilityTime = 0;
             this.roundsComplete++;
-            
-            console.log(`Module3: Question timeout, round ${this.roundsComplete}/${this.totalRounds}`);
-            
             if (this.roundsComplete >= this.totalRounds) {
-                console.log('Module3: All rounds complete!');
                 setTimeout(() => GameEngine.complete(), 500);
             }
         }
@@ -3768,29 +3761,22 @@ class Module3 {
 
     update(stats, deltaTime) {
         if (!this.isActive || !this.mat || !this.mat.uniforms) return;
-        
         try {
-            // Call phase-specific update functions
-            if (this.phase === 'stabilize') {
+            if (this.phase === 'intro') {
+                this.updateIntroPhase(deltaTime);
+            } else if (this.phase === 'stabilize') {
                 this.updateStabilizePhase(stats, deltaTime);
             } else if (this.phase === 'answer') {
                 this.updateAnswerPhase(stats, deltaTime);
             }
-            
-            // Common updates for all phases
             this.mat.uniforms.u_time.value = stats.time;
             this.mat.uniforms.u_stability.value = this.stabilityTime / this.requiredStability;
-            
-            // Enhanced rotation - more visible movement
             if (this.core) {
                 const instabilityFactor = (1 - this.mat.uniforms.u_stability.value);
-                // Base rotation + unstable wobble
                 this.core.rotation.y += (0.3 + instabilityFactor * 0.5) * deltaTime;
                 this.core.rotation.x += (0.15 + instabilityFactor * 0.3) * deltaTime;
                 this.core.rotation.z += (0.1 * instabilityFactor) * deltaTime;
             }
-
-            // Apply camera shake
             if (this.camera && this.initialCameraPos) {
                 if (this.shakeIntensity > 0.01) {
                     const shake = new THREE.Vector3(
@@ -3803,14 +3789,13 @@ class Module3 {
                     this.camera.position.lerp(this.initialCameraPos, 0.1);
                 }
             }
-
-
             stats.progress = (this.roundsComplete / this.totalRounds) * 100;
-        } catch(e) {
+        } catch (e) {
             console.error('Module3 update error:', e);
+            this.isActive = false; // Stop on update error
         }
     }
-    
+
     cleanup() {
         this.isActive = false;
         document.removeEventListener('mousedown', this.onDown);
@@ -3819,25 +3804,23 @@ class Module3 {
         document.removeEventListener('touchend', this.onUp);
         document.removeEventListener('touchcancel', this.onUp);
         document.removeEventListener('touchmove', this.onTouchChange);
-        
         if (this.camera && this.initialCameraPos) {
             this.camera.position.copy(this.initialCameraPos);
         }
-
         if (Visual.scene && this.group) {
             Visual.scene.remove(this.group);
-        }       
-        
+        }
         if (this.core) {
             if (this.core.geometry) this.core.geometry.dispose();
             if (this.mat) this.mat.dispose();
-        }       
-        
+        }
         const questionOverlay = document.getElementById('question-overlay');
-        if (questionOverlay) questionOverlay.classList.remove('active');       
-        if (this.countdownEl) this.countdownEl.classList.remove('active');      
+        if (questionOverlay) questionOverlay.classList.remove('active');
+        if (this.countdownEl) this.countdownEl.classList.remove('active');
+        console.log("Module3 cleaned up.");
     }
 }
+        
         // MODULE 4: Wave Match
         class Module4 {
             init() {
