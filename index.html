@@ -1802,126 +1802,114 @@
             t(key) { return this.data[this.lang][key] || key; }
         };
         
-        const LumenScent = {
+const LumenScent = {
             scents: [
                 { 
                     id: 'floral', 
                     en: 'Floral', 
-                    zh: '花香', 
-                    shape: 'flower', 
+                    zh: '花香',
+                    shape: 'flower', // 具象的花
+                    // 渐变粉色，无白色
                     colors: [
-                        { r: 255, g: 220, b: 220 },
-                        { r: 255, g: 120, b: 160 },
-                        { r: 200, g: 80, b: 120 }
-                    ] 
+                        { r: 255, g: 200, b: 220 }, // 极浅粉
+                        { r: 255, g: 120, b: 160 }, // 亮粉
+                        { r: 200, g: 80, b: 120 }   // 深莓红
+                    ]
                 },
                 { 
                     id: 'woody', 
                     en: 'Woody', 
-                    zh: '木质', 
-                    shape: 'trunk', 
+                    zh: '木质',
+                    shape: 'trunk', // 木桩纹理
+                    // 更深沉的棕色
                     colors: [
-                        { r: 139, g: 69, b: 19 },
-                        { r: 131, g: 90, b: 60 },
-                        { r: 44, g: 23, b: 8 }
-                    ] 
+                        { r: 160, g: 120, b: 80 },  // 浅棕
+                        { r: 101, g: 67, b: 33 },  // 深棕
+                        { r: 60, g: 40, b: 20 }   // 极深棕
+                    ]
                 },
                 { 
                     id: 'citrus', 
                     en: 'Citrus', 
-                    zh: '柑橘', 
-                    shape: 'burst', 
+                    zh: '柑橘',
+                    shape: 'burst',
+                    // 保持高饱和度黄橙，突出活力
                     colors: [
-                        { r: 255, g: 240, b: 100 },
-                        { r: 255, g: 190, b: 0 },
-                        { r: 255, g: 120, b: 0 }
-                    ] 
+                        { r: 255, g: 240, b: 120 },  // 浅亮黄
+                        { r: 255, g: 190, b: 0 },  // 纯黄
+                        { r: 255, g: 120, b: 0 }   // 鲜橙
+                    ]
                 },
                 { 
                     id: 'earthy', 
                     en: 'Earthy', 
-                    zh: '土壤', 
-                    shape: 'moss', 
+                    zh: '土壤',
+                    shape: 'moss', // 苔藓状，高级绿色系
+                    // 苔藓绿和深橄榄色
                     colors: [
-                        { r: 150, g: 170, b: 130 },
-                        { r: 7, g: 90, b: 70 },
-                        { r: 40, g: 60, b: 30 }
-                    ] 
+                        { r: 150, g: 170, b: 130 },  // 浅橄榄
+                        { r: 70, g: 90, b: 70 },   // 苔藓绿
+                        { r: 40, g: 60, b: 30 }    // 深绿棕
+                    ]
                 },
                 { 
                     id: 'fresh', 
                     en: 'Fresh', 
-                    zh: '清新', 
-                    shape: 'wave', 
+                    zh: '清新',
+                    shape: 'wave', // 海洋波浪，蓝色为主
+                    // 海洋蓝、冰川蓝、海沫色
                     colors: [
-                        { r: 155, g: 183, b: 212 },
-                        { r: 100, g: 140, b: 180 },
-                        { r: 58, g: 78, b: 107 }
-                    ] 
+                        { r: 180, g: 230, b: 255 }, // 浅海蓝
+                        { r: 50, g: 180, b: 220 },  // 冰川蓝
+                        { r: 0, g: 100, b: 150 }    // 深海蓝
+                    ]
                 },
                 { 
                     id: 'spicy', 
                     en: 'Spicy', 
-                    zh: '辛香', 
-                    shape: 'chili', 
+                    zh: '辛香',
+                    shape: 'chili', // 辣椒造型
+                    // 纯粹的深红色，无黄色
                     colors: [
-                        { r: 178, g: 34, b: 34 },
-                        { r: 124, g: 34, b: 32 },
-                        { r: 95, g: 33, b: 25 }
-                    ] 
+                        { r: 255, g: 120, b: 120 }, // 亮红
+                        { r: 200, g: 0, b: 0 },     // 纯深红
+                        { r: 120, g: 0, b: 0 }      // 极深红
+                    ]
                 }
             ],
             values: {},
             instances: [],
             currentPage: 0,
             dragging: null,
-
+            
             init() {
                 this.scents.forEach(scent => {
                     this.values[scent.id] = 0;
                 });
                 
-                this.instances = [];
-                
                 this.scents.forEach((scent, idx) => {
                     const pageEl = document.querySelector(`.scent-page[data-page="${idx}"]`);
-                    if (!pageEl) return; 
-
                     pageEl.innerHTML = '';
                     
                     const container = document.createElement('div');
-                    container.style.cssText = 'width: 100%; display: flex; flex-direction: column; align-items: center; flex: 1;';
-                    
-                    const canvasWrapper = document.createElement('div');
-                    canvasWrapper.style.cssText = 'position: relative; flex-shrink: 0; margin-bottom: 1rem;';
+                    container.style.cssText = 'width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;';
                     
                     const canvas = document.createElement('canvas');
                     canvas.className = 'lumen-canvas';
-                    
-                    const isMobile = window.innerWidth <= 768;
-                    const size = isMobile ? Math.min(280, window.innerWidth - 40) : Math.min(350, window.innerWidth - 60);
-                    canvas.width = size;
-                    canvas.height = size;
-                    canvasWrapper.appendChild(canvas);
-                    container.appendChild(canvasWrapper);
+                    canvas.width = Math.min(500, window.innerWidth - 40);
+                    canvas.height = Math.min(500, window.innerWidth - 40);
+                    container.appendChild(canvas);
                     
                     const label = document.createElement('div');
                     label.className = 'lumen-label';
                     label.innerHTML = `
                         <div class="lumen-name ${I18N.lang === 'zh' ? 'zh' : ''}" data-scent="${scent.id}">${scent[I18N.lang]}</div>
                         <div class="lumen-value" data-value="${scent.id}">0</div>
-                        <p class="lumen-instruction">
+                        <p style="font-size: 0.7rem; color: rgba(42, 42, 42, 0.5); margin-top: 0.5rem; text-align: center;">
                             ${I18N.lang === 'en' ? 'Drag outward from center' : '从中心向外拖动'}
                         </p>
                     `;
                     container.appendChild(label);
-                    
-                    const introBox = document.createElement('div');
-                    introBox.className = `scent-intro-box ${I18N.lang === 'zh' ? 'zh' : ''}`;
-                    introBox.dataset.scent = scent.id;
-                    const key = `${scent.id}_desc`;
-                    introBox.textContent = I18N.t(key);
-                    container.appendChild(introBox);
                     
                     pageEl.appendChild(container);
                     
@@ -1931,35 +1919,36 @@
                     this.addRadialInteraction(canvas, scent.id, instance);
                 });
                 
+                document.getElementById('scent-prev').addEventListener('click', () => this.prevPage());
+                document.getElementById('scent-next').addEventListener('click', () => this.nextPage());
+                
+                document.querySelectorAll('.page-dot').forEach(dot => {
+                    dot.addEventListener('click', (e) => {
+                        const page = parseInt(e.target.dataset.page);
+                        this.goToPage(page);
+                    });
+                });
+                
+                this.animate();
                 this.updateLabels();
             },
-
-            update(deltaTime = 16.6) {
-                if (App.state !== 'SCENT') return;
-                try {
-                    this.instances.forEach(inst => inst.update(deltaTime));
-                } catch(e) {
-                    console.error('LumenScent update error:', e);
-                    // Don't throw - continue rendering
-                }
-            },
-
+            
             addRadialInteraction(canvas, scentId, instance) {
                 const getPointer = (e) => {
                     const rect = canvas.getBoundingClientRect();
-                    const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
-                    const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+                    const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                    const y = (e.clientY || e.touches[0].clientY) - rect.top;
                     return { x, y };
                 };
                 
                 const onStart = (e) => {
                     this.dragging = scentId;
                     instance.isDragging = true;
-                    Haptic.light();
+                    Sound.play('slider', 'C3', 0.4); 
                     e.preventDefault();
                 };
                 
-                const onMove = PerformanceUtils.throttle((e) => {
+                const onMove = (e) => {
                     if (this.dragging !== scentId) return;
                     
                     const pos = getPointer(e);
@@ -1980,16 +1969,17 @@
                     instance.dragAngle = Math.atan2(dy, dx);
                     instance.dragDist = dist / maxDist;
                     
-                    Sound.playScentDrag(instance.dragDist, instance.dragAngle);
+                    const pitch = `C${Math.floor(value / 20) + 3}`;
+                    Sound.play('slider', pitch, value / 150);
                     
                     e.preventDefault();
-                }, 16);
+                };
                 
                 const onEnd = () => {
                     if (this.dragging === scentId) {
                         this.dragging = null;
                         instance.isDragging = false;
-                        Sound.stopScentDrag();
+                        Sound.release('slider');
                     }
                 };
                 
@@ -2003,8 +1993,6 @@
                 document.addEventListener('touchend', onEnd);
                 
                 canvas.addEventListener('contextmenu', e => e.preventDefault());
-
-                canvas.eventListeners = { onStart, onMove, onEnd };
             },
             
             prevPage() {
@@ -2042,43 +2030,29 @@
                 this.updateLabels();
             },
             
+            animate() {
+                this.instances.forEach(inst => inst.update());
+                requestAnimationFrame(() => this.animate());
+            },
+            
             updateLabels() {
-                document.querySelectorAll('.scent-intro-box').forEach(introEl => {
-                    const scentId = introEl.dataset.scent;
-                    if (scentId) {
-                        introEl.classList.toggle('zh', I18N.lang === 'zh');
-                        const key = `${scentId}_desc`;
-                        introEl.textContent = I18N.t(key);
-                    }
-                });
+                const currentScent = this.scents[this.currentPage];
+                
+                // Update language and description
+                const introEl = document.getElementById('scent-intro');
+                introEl.classList.toggle('zh', I18N.lang === 'zh');
 
+                const key = `${currentScent.id}_desc`;
+                introEl.textContent = I18N.t(key);
+
+                // Update names in pages
                 this.scents.forEach(scent => {
                     const el = document.querySelector(`[data-scent="${scent.id}"]`);
-                    if (el && el.classList.contains('lumen-name')) {
+                    if (el) {
                         el.textContent = scent[I18N.lang];
                         el.className = `lumen-name ${I18N.lang === 'zh' ? 'zh' : ''}`;
                     }
                 });
-                
-                document.querySelectorAll('.lumen-instruction').forEach(instr => {
-                    instr.textContent = I18N.lang === 'en' ? 'Drag outward from center' : '从中心向外拖动';
-                });
-            },
-            
-            cleanup() {
-                this.instances.forEach(instance => {
-                    const { onStart, onMove, onEnd } = instance.canvas.eventListeners || {};
-
-                    if (onStart) {
-                        instance.canvas.removeEventListener('mousedown', onStart);
-                        instance.canvas.removeEventListener('touchstart', onStart);
-                        document.removeEventListener('mousemove', onMove);
-                        document.removeEventListener('touchmove', onMove);
-                        document.removeEventListener('mouseup', onEnd);
-                        document.removeEventListener('touchend', onEnd);
-                    }
-                });
-                this.instances = [];
             }
         };
         
