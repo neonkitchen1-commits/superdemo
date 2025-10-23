@@ -3540,23 +3540,37 @@
             }
         }
 
-        // ==================== MODULE 3: PATTERN (BASED ON WORKING VERSION) ====================
-        // ==================== MODULE 3: AESTHETIC BREATHING REVOLUTION ====================
+        // ==================== MODULE 3: ULTIMATE COGNITIVE TRAINING ====================
         class Module3 {
             init() {
-                console.log('🌸 Module 3 - Dual Ring System initializing...');
+                console.log('🌸 Module 3 - Ultimate Edition initializing...');
                 this.isActive = true;
                 this.phase = 'breathing';
                 this.score = 0;
                 this.questionCount = 0;
                 this.maxQuestions = 12 + Math.floor(App.tOC / 20);
+                this.lastSoundTime = 0;
                 
                 // ========== BREATHING & INTERACTION ==========
-                this.breathTime = 0; // 连续累加，无痕循环
+                this.breathTime = 0;
                 this.breathCycleTime = 4.0;
                 this.isHolding = false;
                 this.holdTime = 0;
                 this.playerRingScale = 0;
+                
+                // ========== 5-LEVEL DIFFICULTY SYSTEM ==========
+                this.currentLevel = 2; // 1-5
+                this.consecutiveCorrect = 0;
+                this.consecutiveWrong = 0;
+                this.totalCorrectCount = 0;
+                
+                this.DIFFICULTY_RULES = {
+                    upgradeThreshold: 5,
+                    downgradeThreshold: 3,
+                    maxLevel: 5,
+                    minLevel: 1,
+                    quickUpgradeThreshold: 20
+                };
                 
                 // ========== VISUAL ELEMENTS ==========
                 this.group = new THREE.Group();
@@ -3576,18 +3590,18 @@
                 this.targetRing = this.createWabiSabiRing(1.0, 0xc02625);
                 this.group.add(this.targetRing);
                 
-                // 玩家追踪环（按住时扩张）
+                // 玩家追踪环
                 this.playerRing = this.createSmoothRing(0.5, 0x2a2a2a);
                 this.playerRing.scale.set(0, 0, 1);
                 this.group.add(this.playerRing);
                 
-                // 匹配指示器（重叠时发光）
+                // 匹配指示器
                 this.matchRing = this.createSmoothRing(1.0, 0x00cc00);
                 this.matchRing.scale.set(0, 0, 1);
                 this.matchRing.position.z = 0.02;
                 this.group.add(this.matchRing);
                 
-                // 外圈指示点（随目标环呼吸）
+                // 外圈指示点
                 this.indicatorDots = [];
                 for (let i = 0; i < 8; i++) {
                     const angle = (i / 8) * Math.PI * 2;
@@ -3607,178 +3621,121 @@
                 
                 // 显示提示
                 const breathHint = document.getElementById('breath-hint');
-                if (breathHint) {
-                    breathHint.classList.add('active');
-                }
+                if (breathHint) breathHint.classList.add('active');
                 
-                // ========== QUESTION BANK ==========
+                // ========== 完整90题认知题库 ==========
                 this.questionBank = [
-                    // ===== CATEGORY 1: 语义归类 Semantic Categorization (25题) =====
-                    { cat: 'semantic', q_en: "Which doesn't belong: Rose, Tulip, Oak, Daisy?", q_zh: "哪个不属于同类: 玫瑰、郁金香、橡树、雏菊?", a_en: ["Rose", "Tulip", "Oak", "Daisy"], a_zh: ["玫瑰", "郁金香", "橡树", "雏菊"], correct: 2 },
-                    { cat: 'semantic', q_en: "Odd one out: Apple, Orange, Carrot, Banana?", q_zh: "哪个不同: 苹果、橙子、胡萝卜、香蕉?", a_en: ["Apple", "Orange", "Carrot", "Banana"], a_zh: ["苹果", "橙子", "胡萝卜", "香蕉"], correct: 2 },
-                    { cat: 'semantic', q_en: "Which is not a mammal: Dolphin, Shark, Whale, Seal?", q_zh: "哪个不是哺乳动物: 海豚、鲨鱼、鲸鱼、海豹?", a_en: ["Dolphin", "Shark", "Whale", "Seal"], a_zh: ["海豚", "鲨鱼", "鲸鱼", "海豹"], correct: 1 },
-                    { cat: 'semantic', q_en: "Which is a reptile: Frog, Lizard, Salamander, Toad?", q_zh: "哪个是爬行动物: 青蛙、蜥蜴、蝾螈、蟾蜍?", a_en: ["Frog", "Lizard", "Salamander", "Toad"], a_zh: ["青蛙", "蜥蜴", "蝾螈", "蟾蜍"], correct: 1 },
-                    { cat: 'semantic', q_en: "Odd tool: Hammer, Screwdriver, Wrench, Pencil?", q_zh: "奇怪的工具: 锤子、螺丝刀、扳手、铅笔?", a_en: ["Hammer", "Screwdriver", "Wrench", "Pencil"], a_zh: ["锤子", "螺丝刀", "扳手", "铅笔"], correct: 3 },
-                    { cat: 'semantic', q_en: "Which is not furniture: Chair, Table, Piano, Lamp?", q_zh: "哪个不是家具: 椅子、桌子、钢琴、台灯?", a_en: ["Chair", "Table", "Piano", "Lamp"], a_zh: ["椅子", "桌子", "钢琴", "台灯"], correct: 2 },
-                    { cat: 'semantic', q_en: "Odd vehicle: Car, Bus, Bicycle, Airplane?", q_zh: "不同的交通工具: 汽车、公交车、自行车、飞机?", a_en: ["Car", "Bus", "Bicycle", "Airplane"], a_zh: ["汽车", "公交车", "自行车", "飞机"], correct: 3 },
-                    { cat: 'semantic', q_en: "Which is not a beverage: Water, Milk, Soup, Juice?", q_zh: "哪个不是饮料: 水、牛奶、汤、果汁?", a_en: ["Water", "Milk", "Soup", "Juice"], a_zh: ["水", "牛奶", "汤", "果汁"], correct: 2 },
-                    { cat: 'semantic', q_en: "Odd season: Spring, Summer, December, Winter?", q_zh: "奇怪的季节: 春天、夏天、十二月、冬天?", a_en: ["Spring", "Summer", "December", "Winter"], a_zh: ["春天", "夏天", "十二月", "冬天"], correct: 2 },
-                    { cat: 'semantic', q_en: "Which is not clothing: Shirt, Pants, Watch, Shoes?", q_zh: "哪个不是衣物: 衬衫、裤子、手表、鞋子?", a_en: ["Shirt", "Pants", "Watch", "Shoes"], a_zh: ["衬衫", "裤子", "手表", "鞋子"], correct: 2 },
-                    { cat: 'semantic', q_en: "Odd profession: Doctor, Teacher, Student, Engineer?", q_zh: "不同的职业: 医生、教师、学生、工程师?", a_en: ["Doctor", "Teacher", "Student", "Engineer"], a_zh: ["医生", "教师", "学生", "工程师"], correct: 2 },
-                    { cat: 'semantic', q_en: "Which is not a musical instrument: Piano, Violin, Radio, Guitar?", q_zh: "哪个不是乐器: 钢琴、小提琴、收音机、吉他?", a_en: ["Piano", "Violin", "Radio", "Guitar"], a_zh: ["钢琴", "小提琴", "收音机、吉他"], correct: 2 },
-                    { cat: 'semantic', q_en: "Odd body part: Hand, Foot, Heart, Hair?", q_zh: "不同的身体部位: 手、脚、心脏、头发?", a_en: ["Hand", "Foot", "Heart", "Hair"], a_zh: ["手", "脚", "心脏", "头发"], correct: 2 },
-                    { cat: 'semantic', q_en: "Which is not a color: Red, Blue, Circle, Yellow?", q_zh: "哪个不是颜色: 红色、蓝色、圆形、黄色?", a_en: ["Red", "Blue", "Circle", "Yellow"], a_zh: ["红色", "蓝色", "圆形", "黄色"], correct: 2 },
-                    { cat: 'semantic', q_en: "Odd emotion: Happy, Sad, Thinking, Angry?", q_zh: "不同的情绪: 快乐、悲伤、思考、愤怒?", a_en: ["Happy", "Sad", "Thinking", "Angry"], a_zh: ["快乐", "悲伤", "思考", "愤怒"], correct: 2 },
-                    { cat: 'semantic', q_en: "Which is not a room: Kitchen, Bedroom, Garden, Bathroom?", q_zh: "哪个不是房间: 厨房、卧室、花园、浴室?", a_en: ["Kitchen", "Bedroom", "Garden", "Bathroom"], a_zh: ["厨房", "卧室", "花园", "浴室"], correct: 2 },
-                    { cat: 'semantic', q_en: "Odd weather: Sunny, Rainy, Monday, Snowy?", q_zh: "奇怪的天气: 晴天、雨天、星期一、雪天?", a_en: ["Sunny", "Rainy", "Monday", "Snowy"], a_zh: ["晴天", "雨天", "星期一", "雪天"], correct: 2 },
-                    { cat: 'semantic', q_en: "Which is not kitchenware: Pot, Pan, Television, Spoon?", q_zh: "哪个不是厨具: 锅、平底锅、电视、勺子?", a_en: ["Pot", "Pan", "Television", "Spoon"], a_zh: ["锅", "平底锅", "电视", "勺子"], correct: 2 },
-                    { cat: 'semantic', q_en: "Odd insect: Ant, Bee, Spider, Butterfly?", q_zh: "不同的昆虫: 蚂蚁、蜜蜂、蜘蛛、蝴蝶?", a_en: ["Ant", "Bee", "Spider", "Butterfly"], a_zh: ["蚂蚁", "蜜蜂", "蜘蛛", "蝴蝶"], correct: 2 },
-                    { cat: 'semantic', q_en: "Which is not a grain: Rice, Wheat, Potato, Corn?", q_zh: "哪个不是谷物: 大米、小麦、土豆、玉米?", a_en: ["Rice", "Wheat", "Potato", "Corn"], a_zh: ["大米", "小麦", "土豆", "玉米"], correct: 2 },
-                    { cat: 'semantic', q_en: "Odd sport: Soccer, Basketball, Chess, Tennis?", q_zh: "不同的运动: 足球、篮球、国际象棋、网球?", a_en: ["Soccer", "Basketball", "Chess", "Tennis"], a_zh: ["足球", "篮球", "国际象棋", "网球"], correct: 2 },
-                    { cat: 'semantic', q_en: "Which is not stationery: Pen, Paper, Book, Eraser?", q_zh: "哪个不是文具: 笔、纸、书、橡皮?", a_en: ["Pen", "Paper", "Book", "Eraser"], a_zh: ["笔", "纸", "书", "橡皮"], correct: 2 },
-                    { cat: 'semantic', q_en: "Odd shape: Circle, Square, Heavy, Triangle?", q_zh: "不同的形状: 圆形、正方形、重的、三角形?", a_en: ["Circle", "Square", "Heavy", "Triangle"], a_zh: ["圆形", "正方形", "重的", "三角形"], correct: 2 },
-                    { cat: 'semantic', q_en: "Which is not electronic: Phone, Computer, Candle, Television?", q_zh: "哪个不是电器: 电话、电脑、蜡烛、电视?", a_en: ["Phone", "Computer", "Candle", "Television"], a_zh: ["电话", "电脑", "蜡烛", "电视"], correct: 2 },
-                    { cat: 'semantic', q_en: "Odd natural element: Mountain, River, Building, Forest?", q_zh: "不同的自然元素: 山、河、建筑、森林?", a_en: ["Mountain", "River", "Building", "Forest"], a_zh: ["山", "河", "建筑", "森林"], correct: 2 },
+                    // ===== CATEGORY 1: 语义归类 Semantic (25题) =====
+                    { cat: 'semantic', level: 1, q_en: "Which doesn't belong: Rose, Tulip, Oak, Daisy?", q_zh: "哪个不属于同类: 玫瑰、郁金香、橡树、雏菊?", a_en: ["Rose", "Tulip", "Oak", "Daisy"], a_zh: ["玫瑰", "郁金香", "橡树", "雏菊"], correct: 2 },
+                    { cat: 'semantic', level: 1, q_en: "Odd one out: Apple, Orange, Carrot, Banana?", q_zh: "哪个不同: 苹果、橙子、胡萝卜、香蕉?", a_en: ["Apple", "Orange", "Carrot", "Banana"], a_zh: ["苹果", "橙子", "胡萝卜", "香蕉"], correct: 2 },
+                    { cat: 'semantic', level: 2, q_en: "Which is not a mammal: Dolphin, Shark, Whale, Seal?", q_zh: "哪个不是哺乳动物: 海豚、鲨鱼、鲸鱼、海豹?", a_en: ["Dolphin", "Shark", "Whale", "Seal"], a_zh: ["海豚", "鲨鱼", "鲸鱼", "海豹"], correct: 1 },
+                    { cat: 'semantic', level: 2, q_en: "Which is a reptile: Frog, Lizard, Salamander, Toad?", q_zh: "哪个是爬行动物: 青蛙、蜥蜴、蝾螈、蟾蜍?", a_en: ["Frog", "Lizard", "Salamander", "Toad"], a_zh: ["青蛙", "蜥蜴", "蝾螈", "蟾蜍"], correct: 1 },
+                    { cat: 'semantic', level: 1, q_en: "Odd tool: Hammer, Screwdriver, Wrench, Pencil?", q_zh: "奇怪的工具: 锤子、螺丝刀、扳手、铅笔?", a_en: ["Hammer", "Screwdriver", "Wrench", "Pencil"], a_zh: ["锤子", "螺丝刀", "扳手", "铅笔"], correct: 3 },
+                    { cat: 'semantic', level: 2, q_en: "Which is not furniture: Chair, Table, Piano, Lamp?", q_zh: "哪个不是家具: 椅子、桌子、钢琴、台灯?", a_en: ["Chair", "Table", "Piano", "Lamp"], a_zh: ["椅子", "桌子", "钢琴", "台灯"], correct: 2 },
+                    { cat: 'semantic', level: 1, q_en: "Odd vehicle: Car, Bus, Bicycle, Airplane?", q_zh: "不同的交通工具: 汽车、公交车、自行车、飞机?", a_en: ["Car", "Bus", "Bicycle", "Airplane"], a_zh: ["汽车", "公交车", "自行车", "飞机"], correct: 3 },
+                    { cat: 'semantic', level: 2, q_en: "Which is not a beverage: Water, Milk, Soup, Juice?", q_zh: "哪个不是饮料: 水、牛奶、汤、果汁?", a_en: ["Water", "Milk", "Soup", "Juice"], a_zh: ["水", "牛奶", "汤", "果汁"], correct: 2 },
+                    { cat: 'semantic', level: 1, q_en: "Odd season: Spring, Summer, December, Winter?", q_zh: "奇怪的季节: 春天、夏天、十二月、冬天?", a_en: ["Spring", "Summer", "December", "Winter"], a_zh: ["春天", "夏天", "十二月", "冬天"], correct: 2 },
+                    { cat: 'semantic', level: 2, q_en: "Which is not clothing: Shirt, Pants, Watch, Shoes?", q_zh: "哪个不是衣物: 衬衫、裤子、手表、鞋子?", a_en: ["Shirt", "Pants", "Watch", "Shoes"], a_zh: ["衬衫", "裤子", "手表", "鞋子"], correct: 2 },
+                    { cat: 'semantic', level: 2, q_en: "Odd profession: Doctor, Teacher, Student, Engineer?", q_zh: "不同的职业: 医生、教师、学生、工程师?", a_en: ["Doctor", "Teacher", "Student", "Engineer"], a_zh: ["医生", "教师", "学生", "工程师"], correct: 2 },
+                    { cat: 'semantic', level: 3, q_en: "Which is not a musical instrument: Piano, Violin, Radio, Guitar?", q_zh: "哪个不是乐器: 钢琴、小提琴、收音机、吉他?", a_en: ["Piano", "Violin", "Radio", "Guitar"], a_zh: ["钢琴", "小提琴", "收音机", "吉他"], correct: 2 },
+                    { cat: 'semantic', level: 2, q_en: "Odd body part: Hand, Foot, Heart, Hair?", q_zh: "不同的身体部位: 手、脚、心脏、头发?", a_en: ["Hand", "Foot", "Heart", "Hair"], a_zh: ["手", "脚", "心脏", "头发"], correct: 2 },
+                    { cat: 'semantic', level: 1, q_en: "Which is not a color: Red, Blue, Circle, Yellow?", q_zh: "哪个不是颜色: 红色、蓝色、圆形、黄色?", a_en: ["Red", "Blue", "Circle", "Yellow"], a_zh: ["红色", "蓝色", "圆形", "黄色"], correct: 2 },
+                    { cat: 'semantic', level: 2, q_en: "Odd emotion: Happy, Sad, Thinking, Angry?", q_zh: "不同的情绪: 快乐、悲伤、思考、愤怒?", a_en: ["Happy", "Sad", "Thinking", "Angry"], a_zh: ["快乐", "悲伤", "思考", "愤怒"], correct: 2 },
+                    { cat: 'semantic', level: 3, q_en: "Which is not a room: Kitchen, Bedroom, Garden, Bathroom?", q_zh: "哪个不是房间: 厨房、卧室、花园、浴室?", a_en: ["Kitchen", "Bedroom", "Garden", "Bathroom"], a_zh: ["厨房", "卧室", "花园", "浴室"], correct: 2 },
+                    { cat: 'semantic', level: 1, q_en: "Odd weather: Sunny, Rainy, Monday, Snowy?", q_zh: "奇怪的天气: 晴天、雨天、星期一、雪天?", a_en: ["Sunny", "Rainy", "Monday", "Snowy"], a_zh: ["晴天", "雨天", "星期一", "雪天"], correct: 2 },
+                    { cat: 'semantic', level: 3, q_en: "Which is not kitchenware: Pot, Pan, Television, Spoon?", q_zh: "哪个不是厨具: 锅、平底锅、电视、勺子?", a_en: ["Pot", "Pan", "Television", "Spoon"], a_zh: ["锅", "平底锅", "电视", "勺子"], correct: 2 },
+                    { cat: 'semantic', level: 3, q_en: "Odd insect: Ant, Bee, Spider, Butterfly?", q_zh: "不同的昆虫: 蚂蚁、蜜蜂、蜘蛛、蝴蝶?", a_en: ["Ant", "Bee", "Spider", "Butterfly"], a_zh: ["蚂蚁", "蜜蜂", "蜘蛛", "蝴蝶"], correct: 2 },
+                    { cat: 'semantic', level: 2, q_en: "Which is not a shape: Square, Triangle, Heavy, Circle?", q_zh: "哪个不是形状: 正方形、三角形、重、圆形?", a_en: ["Square", "Triangle", "Heavy", "Circle"], a_zh: ["正方形", "三角形", "重", "圆形"], correct: 2 },
+                    { cat: 'semantic', level: 4, q_en: "Odd natural disaster: Earthquake, Tornado, Birthday, Tsunami?", q_zh: "不同的自然灾害: 地震、龙卷风、生日、海啸?", a_en: ["Earthquake", "Tornado", "Birthday", "Tsunami"], a_zh: ["地震", "龙卷风", "生日、海啸"], correct: 2 },
+                    { cat: 'semantic', level: 3, q_en: "Which is not metal: Iron, Copper, Wood, Steel?", q_zh: "哪个不是金属: 铁、铜、木头、钢?", a_en: ["Iron", "Copper", "Wood", "Steel"], a_zh: ["铁", "铜", "木头", "钢"], correct: 2 },
+                    { cat: 'semantic', level: 4, q_en: "Odd celestial body: Sun, Moon, Cloud, Mars?", q_zh: "不同的天体: 太阳、月亮、云、火星?", a_en: ["Sun", "Moon", "Cloud", "Mars"], a_zh: ["太阳", "月亮", "云", "火星"], correct: 2 },
+                    { cat: 'semantic', level: 4, q_en: "Which is not energy: Electricity, Heat, Chair, Light?", q_zh: "哪个不是能量: 电、热、椅子、光?", a_en: ["Electricity", "Heat", "Chair", "Light"], a_zh: ["电", "热", "椅子", "光"], correct: 2 },
+                    { cat: 'semantic', level: 5, q_en: "Odd concept: Democracy, Gravity, Justice, Freedom?", q_zh: "不同的概念: 民主、重力、正义、自由?", a_en: ["Democracy", "Gravity", "Justice", "Freedom"], a_zh: ["民主", "重力", "正义、自由"], correct: 1 },
                     
-                    // ===== CATEGORY 2: 词语联想 Word Association (25题) =====
-                    { cat: 'association', q_en: "Ocean makes you think of:", q_zh: "海洋让你想到:", a_en: ["Whale", "Tiger", "Cloud", "Book"], a_zh: ["鲸鱼", "老虎", "云", "书"], correct: 0 },
-                    { cat: 'association', q_en: "Winter is associated with:", q_zh: "冬天联想到:", a_en: ["Snow", "Sun", "Flower", "Swimming"], a_zh: ["雪", "太阳", "花", "游泳"], correct: 0 },
-                    { cat: 'association', q_en: "Hospital reminds you of:", q_zh: "医院让你想起:", a_en: ["Doctor", "Chef", "Artist", "Driver"], a_zh: ["医生", "厨师", "艺术家", "司机"], correct: 0 },
-                    { cat: 'association', q_en: "Night is connected to:", q_zh: "夜晚关联到:", a_en: ["Moon", "Sun", "Morning", "Noon"], a_zh: ["月亮", "太阳", "早晨", "中午"], correct: 0 },
-                    { cat: 'association', q_en: "Library makes you think of:", q_zh: "图书馆让你想到:", a_en: ["Books", "Food", "Cars", "Music"], a_zh: ["书籍", "食物", "汽车", "音乐"], correct: 0 },
-                    { cat: 'association', q_en: "Rain is related to:", q_zh: "雨关联到:", a_en: ["Umbrella", "Fire", "Desert", "Ice cream"], a_zh: ["雨伞", "火", "沙漠", "冰淇淋"], correct: 0 },
-                    { cat: 'association', q_en: "Birthday reminds you of:", q_zh: "生日让你想起:", a_en: ["Cake", "Homework", "Medicine", "Traffic"], a_zh: ["蛋糕", "作业", "药物", "交通"], correct: 0 },
-                    { cat: 'association', q_en: "Music is connected to:", q_zh: "音乐关联到:", a_en: ["Instrument", "Hammer", "Vegetable", "Clock"], a_zh: ["乐器", "锤子", "蔬菜", "时钟"], correct: 0 },
-                    { cat: 'association', q_en: "Garden makes you think of:", q_zh: "花园让你想到:", a_en: ["Flowers", "Computer", "Airplane", "Money"], a_zh: ["花朵", "电脑", "飞机", "钱"], correct: 0 },
-                    { cat: 'association', q_en: "Fire is associated with:", q_zh: "火关联到:", a_en: ["Heat", "Cold", "Wet", "Soft"], a_zh: ["热", "冷", "湿", "软"], correct: 0 },
-                    { cat: 'association', q_en: "School reminds you of:", q_zh: "学校让你想起:", a_en: ["Student", "Pilot", "Farmer", "Sailor"], a_zh: ["学生", "飞行员", "农民", "水手"], correct: 0 },
-                    { cat: 'association', q_en: "Kitchen is connected to:", q_zh: "厨房关联到:", a_en: ["Cooking", "Sleeping", "Swimming", "Flying"], a_zh: ["烹饪", "睡觉", "游泳", "飞行"], correct: 0 },
-                    { cat: 'association', q_en: "Airport makes you think of:", q_zh: "机场让你想到:", a_en: ["Airplane", "Ship", "Bicycle", "Train"], a_zh: ["飞机", "轮船", "自行车", "火车"], correct: 0 },
-                    { cat: 'association', q_en: "Sunrise is related to:", q_zh: "日出关联到:", a_en: ["Morning", "Night", "Midnight", "Evening"], a_zh: ["早晨", "夜晚", "午夜", "傍晚"], correct: 0 },
-                    { cat: 'association', q_en: "Desert reminds you of:", q_zh: "沙漠让你想起:", a_en: ["Sand", "Ocean", "Forest", "Snow"], a_zh: ["沙子", "海洋", "森林", "雪"], correct: 0 },
-                    { cat: 'association', q_en: "Wedding is connected to:", q_zh: "婚礼关联到:", a_en: ["Marriage", "Funeral", "Battle", "Storm"], a_zh: ["婚姻", "葬礼", "战斗", "风暴"], correct: 0 },
-                    { cat: 'association', q_en: "Clock makes you think of:", q_zh: "时钟让你想到:", a_en: ["Time", "Color", "Taste", "Smell"], a_zh: ["时间", "颜色", "味道", "气味"], correct: 0 },
-                    { cat: 'association', q_en: "Cinema is associated with:", q_zh: "电影院关联到:", a_en: ["Movie", "Grocery", "Hospital", "Bank"], a_zh: ["电影", "杂货", "医院", "银行"], correct: 0 },
-                    { cat: 'association', q_en: "Bed reminds you of:", q_zh: "床让你想起:", a_en: ["Sleep", "Run", "Dance", "Swim"], a_zh: ["睡觉", "跑步", "跳舞", "游泳"], correct: 0 },
-                    { cat: 'association', q_en: "Telephone is connected to:", q_zh: "电话关联到:", a_en: ["Call", "Write", "Draw", "Build"], a_zh: ["通话", "写字", "画画", "建造"], correct: 0 },
-                    { cat: 'association', q_en: "Forest makes you think of:", q_zh: "森林让你想到:", a_en: ["Trees", "Building", "Ocean", "Desert"], a_zh: ["树木", "建筑", "海洋", "沙漠"], correct: 0 },
-                    { cat: 'association', q_en: "Summer is related to:", q_zh: "夏天关联到:", a_en: ["Hot", "Cold", "Frozen", "Icy"], a_zh: ["热", "冷", "冰冻", "结冰"], correct: 0 },
-                    { cat: 'association', q_en: "Newspaper reminds you of:", q_zh: "报纸让你想起:", a_en: ["News", "Food", "Clothes", "Furniture"], a_zh: ["新闻", "食物", "衣服", "家具"], correct: 0 },
-                    { cat: 'association', q_en: "Church is connected to:", q_zh: "教堂关联到:", a_en: ["Prayer", "Shopping", "Gaming", "Cooking"], a_zh: ["祈祷", "购物", "游戏", "烹饪"], correct: 0 },
-                    { cat: 'association', q_en: "Rainbow makes you think of:", q_zh: "彩虹让你想到:", a_en: ["Colors", "Black", "Night", "Darkness"], a_zh: ["颜色", "黑色", "夜晚", "黑暗"], correct: 0 },
+                    // ===== CATEGORY 2: 关联推理 Association (20题) =====
+                    { cat: 'association', level: 1, q_en: "Fish is to Water as Bird is to?", q_zh: "鱼对水 如同 鸟对?", a_en: ["Ocean", "Sky", "Tree", "Nest"], a_zh: ["海洋", "天空", "树", "巢"], correct: 1 },
+                    { cat: 'association', level: 1, q_en: "Book is to Reading as Fork is to?", q_zh: "书对阅读 如同 叉子对?", a_en: ["Kitchen", "Eating", "Spoon", "Food"], a_zh: ["厨房", "吃饭", "勺子", "食物"], correct: 1 },
+                    { cat: 'association', level: 2, q_en: "Doctor is to Hospital as Teacher is to?", q_zh: "医生对医院 如同 教师对?", a_en: ["School", "Book", "Student", "Classroom"], a_zh: ["学校", "书", "学生", "教室"], correct: 0 },
+                    { cat: 'association', level: 2, q_en: "Clock is to Time as Thermometer is to?", q_zh: "钟对时间 如同 温度计对?", a_en: ["Heat", "Temperature", "Weather", "Cold"], a_zh: ["热", "温度", "天气", "冷"], correct: 1 },
+                    { cat: 'association', level: 2, q_en: "Painter is to Brush as Writer is to?", q_zh: "画家对画笔 如同 作家对?", a_en: ["Book", "Pen", "Story", "Paper"], a_zh: ["书", "笔", "故事", "纸"], correct: 1 },
+                    { cat: 'association', level: 3, q_en: "Wheel is to Car as Wing is to?", q_zh: "轮子对汽车 如同 翅膀对?", a_en: ["Bird", "Airplane", "Feather", "Sky"], a_zh: ["鸟", "飞机", "羽毛", "天空"], correct: 1 },
+                    { cat: 'association', level: 3, q_en: "Rain is to Umbrella as Sun is to?", q_zh: "雨对雨伞 如同 太阳对?", a_en: ["Cloud", "Sunglasses", "Heat", "Summer"], a_zh: ["云", "太阳镜", "热", "夏天"], correct: 1 },
+                    { cat: 'association', level: 3, q_en: "Key is to Lock as Password is to?", q_zh: "钥匙对锁 如同 密码对?", a_en: ["Computer", "Account", "Security", "Door"], a_zh: ["电脑", "账户", "安全", "门"], correct: 1 },
+                    { cat: 'association', level: 3, q_en: "Seed is to Plant as Egg is to?", q_zh: "种子对植物 如同 蛋对?", a_en: ["Chicken", "Bird", "Food", "Shell"], a_zh: ["鸡", "鸟", "食物", "壳"], correct: 1 },
+                    { cat: 'association', level: 4, q_en: "Lens is to Camera as Retina is to?", q_zh: "镜头对相机 如同 视网膜对?", a_en: ["Eye", "Vision", "Brain", "Light"], a_zh: ["眼睛", "视觉", "大脑", "光"], correct: 0 },
+                    { cat: 'association', level: 4, q_en: "Map is to Geography as Graph is to?", q_zh: "地图对地理 如同 图表对?", a_en: ["Data", "Statistics", "Mathematics", "Chart"], a_zh: ["数据", "统计", "数学", "图"], correct: 1 },
+                    { cat: 'association', level: 4, q_en: "Fuel is to Engine as Food is to?", q_zh: "燃料对发动机 如同 食物对?", a_en: ["Body", "Energy", "Stomach", "Mouth"], a_zh: ["身体", "能量", "胃", "嘴"], correct: 0 },
+                    { cat: 'association', level: 4, q_en: "Conductor is to Orchestra as Director is to?", q_zh: "指挥对乐队 如同 导演对?", a_en: ["Movie", "Film", "Actor", "Camera"], a_zh: ["电影", "影片", "演员", "相机"], correct: 1 },
+                    { cat: 'association', level: 5, q_en: "Hypothesis is to Theory as Sketch is to?", q_zh: "假设对理论 如同 草图对?", a_en: ["Drawing", "Painting", "Art", "Design"], a_zh: ["绘画", "油画", "艺术", "设计"], correct: 1 },
+                    { cat: 'association', level: 5, q_en: "DNA is to Genetics as Algorithm is to?", q_zh: "DNA对遗传学 如同 算法对?", a_en: ["Computer", "Programming", "Mathematics", "Logic"], a_zh: ["电脑", "编程", "数学", "逻辑"], correct: 1 },
+                    { cat: 'association', level: 5, q_en: "Catalyst is to Reaction as Inspiration is to?", q_zh: "催化剂对反应 如同 灵感对?", a_en: ["Creativity", "Art", "Thought", "Idea"], a_zh: ["创造力", "艺术", "思考", "想法"], correct: 0 },
+                    { cat: 'association', level: 2, q_en: "Needle is to Thread as Hammer is to?", q_zh: "针对线 如同 锤子对?", a_en: ["Nail", "Tool", "Wood", "Hit"], a_zh: ["钉子", "工具", "木头", "敲"], correct: 0 },
+                    { cat: 'association', level: 3, q_en: "Root is to Tree as Foundation is to?", q_zh: "根对树 如同 基础对?", a_en: ["Building", "House", "Ground", "Support"], a_zh: ["建筑", "房子", "地面", "支撑"], correct: 0 },
+                    { cat: 'association', level: 4, q_en: "Author is to Novel as Composer is to?", q_zh: "作者对小说 如同 作曲家对?", a_en: ["Music", "Symphony", "Piano", "Song"], a_zh: ["音乐", "交响乐", "钢琴", "歌曲"], correct: 1 },
+                    { cat: 'association', level: 5, q_en: "Atom is to Molecule as Cell is to?", q_zh: "原子对分子 如同 细胞对?", a_en: ["Tissue", "Organism", "Body", "Life"], a_zh: ["组织", "生物体", "身体", "生命"], correct: 0 },
                     
-                    // ===== CATEGORY 3: 反义近义 Antonyms/Synonyms (15题) =====
-                    { cat: 'antonym', q_en: "Opposite of 'Happy':", q_zh: "'快乐'的反义词:", a_en: ["Sad", "Excited", "Calm", "Tired"], a_zh: ["悲伤", "兴奋", "平静", "疲倦"], correct: 0 },
-                    { cat: 'antonym', q_en: "Opposite of 'Hot':", q_zh: "'热'的反义词:", a_en: ["Cold", "Warm", "Cool", "Mild"], a_zh: ["冷", "温暖", "凉", "温和"], correct: 0 },
-                    { cat: 'synonym', q_en: "Similar to 'Big':", q_zh: "'大'的近义词:", a_en: ["Large", "Small", "Tiny", "Little"], a_zh: ["巨大", "小", "微小", "小的"], correct: 0 },
-                    { cat: 'antonym', q_en: "Opposite of 'Fast':", q_zh: "'快'的反义词:", a_en: ["Slow", "Quick", "Rapid", "Swift"], a_zh: ["慢", "快速", "迅速", "敏捷"], correct: 0 },
-                    { cat: 'synonym', q_en: "Similar to 'Happy':", q_zh: "'快乐'的近义词:", a_en: ["Joyful", "Sad", "Angry", "Scared"], a_zh: ["高兴", "悲伤", "愤怒", "害怕"], correct: 0 },
-                    { cat: 'antonym', q_en: "Opposite of 'Up':", q_zh: "'上'的反义词:", a_en: ["Down", "Side", "Forward", "Back"], a_zh: ["下", "侧", "前", "后"], correct: 0 },
-                    { cat: 'synonym', q_en: "Similar to 'Beautiful':", q_zh: "'美丽'的近义词:", a_en: ["Pretty", "Ugly", "Plain", "Dull"], a_zh: ["漂亮", "丑陋", "朴素", "乏味"], correct: 0 },
-                    { cat: 'antonym', q_en: "Opposite of 'Day':", q_zh: "'白天'的反义词:", a_en: ["Night", "Morning", "Noon", "Afternoon"], a_zh: ["夜晚", "早晨", "中午", "下午"], correct: 0 },
-                    { cat: 'synonym', q_en: "Similar to 'Small':", q_zh: "'小'的近义词:", a_en: ["Tiny", "Big", "Large", "Huge"], a_zh: ["微小", "大", "巨大", "庞大"], correct: 0 },
-                    { cat: 'antonym', q_en: "Opposite of 'Strong':", q_zh: "'强壮'的反义词:", a_en: ["Weak", "Powerful", "Mighty", "Robust"], a_zh: ["虚弱", "强大", "有力", "健壮"], correct: 0 },
-                    { cat: 'synonym', q_en: "Similar to 'Smart':", q_zh: "'聪明'的近义词:", a_en: ["Intelligent", "Stupid", "Dumb", "Slow"], a_zh: ["智慧", "愚蠢", "笨", "迟钝"], correct: 0 },
-                    { cat: 'antonym', q_en: "Opposite of 'Clean':", q_zh: "'干净'的反义词:", a_en: ["Dirty", "Pure", "Fresh", "Clear"], a_zh: ["脏", "纯净", "新鲜", "清澈"], correct: 0 },
-                    { cat: 'synonym', q_en: "Similar to 'Loud':", q_zh: "'大声'的近义词:", a_en: ["Noisy", "Quiet", "Silent", "Soft"], a_zh: ["吵闹", "安静", "寂静", "轻柔"], correct: 0 },
-                    { cat: 'antonym', q_en: "Opposite of 'Empty':", q_zh: "'空'的反义词:", a_en: ["Full", "Vacant", "Hollow", "Bare"], a_zh: ["满", "空缺", "空洞", "光秃"], correct: 0 },
-                    { cat: 'synonym', q_en: "Similar to 'Brave':", q_zh: "'勇敢'的近义词:", a_en: ["Courageous", "Cowardly", "Timid", "Fearful"], a_zh: ["英勇", "胆小", "胆怯", "害怕"], correct: 0 },
+                    // ===== CATEGORY 3: 反义关系 Antonym (15题) =====
+                    { cat: 'antonym', level: 1, q_en: "Opposite of Hot?", q_zh: "热的反义词?", a_en: ["Warm", "Cold", "Cool", "Ice"], a_zh: ["温", "冷", "凉", "冰"], correct: 1 },
+                    { cat: 'antonym', level: 1, q_en: "Opposite of Big?", q_zh: "大的反义词?", a_en: ["Small", "Tiny", "Little", "Short"], a_zh: ["小", "微小", "少", "短"], correct: 0 },
+                    { cat: 'antonym', level: 2, q_en: "Opposite of Fast?", q_zh: "快的反义词?", a_en: ["Quick", "Slow", "Stop", "Late"], a_zh: ["迅速", "慢", "停", "晚"], correct: 1 },
+                    { cat: 'antonym', level: 2, q_en: "Opposite of Empty?", q_zh: "空的反义词?", a_en: ["Full", "Filled", "Heavy", "Solid"], a_zh: ["满", "填充", "重", "实心"], correct: 0 },
+                    { cat: 'antonym', level: 2, q_en: "Opposite of Strong?", q_zh: "强的反义词?", a_en: ["Power", "Weak", "Soft", "Light"], a_zh: ["力量", "弱", "软", "轻"], correct: 1 },
+                    { cat: 'antonym', level: 3, q_en: "Opposite of Accept?", q_zh: "接受的反义词?", a_en: ["Reject", "Refuse", "Deny", "Ignore"], a_zh: ["拒绝", "回绝", "否认", "忽视"], correct: 0 },
+                    { cat: 'antonym', level: 3, q_en: "Opposite of Ancient?", q_zh: "古代的反义词?", a_en: ["Old", "Modern", "New", "Recent"], a_zh: ["旧", "现代", "新", "最近"], correct: 1 },
+                    { cat: 'antonym', level: 3, q_en: "Opposite of Courage?", q_zh: "勇气的反义词?", a_en: ["Fear", "Cowardice", "Weak", "Scared"], a_zh: ["恐惧", "怯懦", "弱", "害怕"], correct: 1 },
+                    { cat: 'antonym', level: 4, q_en: "Opposite of Abundant?", q_zh: "丰富的反义词?", a_en: ["Many", "Scarce", "Few", "Less"], a_zh: ["多", "稀缺", "少", "更少"], correct: 1 },
+                    { cat: 'antonym', level: 4, q_en: "Opposite of Ascend?", q_zh: "上升的反义词?", a_en: ["Descend", "Down", "Fall", "Lower"], a_zh: ["下降", "下", "落", "降低"], correct: 0 },
+                    { cat: 'antonym', level: 4, q_en: "Opposite of Expand?", q_zh: "扩展的反义词?", a_en: ["Contract", "Shrink", "Reduce", "Smaller"], a_zh: ["收缩", "缩小", "减少", "更小"], correct: 0 },
+                    { cat: 'antonym', level: 5, q_en: "Opposite of Optimistic?", q_zh: "乐观的反义词?", a_en: ["Sad", "Pessimistic", "Negative", "Unhappy"], a_zh: ["悲伤", "悲观", "消极", "不快乐"], correct: 1 },
+                    { cat: 'antonym', level: 5, q_en: "Opposite of Transparent?", q_zh: "透明的反义词?", a_en: ["Clear", "Opaque", "Dark", "Solid"], a_zh: ["清澈", "不透明", "黑暗", "固体"], correct: 1 },
+                    { cat: 'antonym', level: 5, q_en: "Opposite of Voluntary?", q_zh: "自愿的反义词?", a_en: ["Forced", "Compulsory", "Must", "Required"], a_zh: ["被迫", "强制", "必须", "必需"], correct: 1 },
+                    { cat: 'antonym', level: 5, q_en: "Opposite of Synthetic?", q_zh: "合成的反义词?", a_en: ["Real", "Natural", "Organic", "Pure"], a_zh: ["真实", "天然", "有机", "纯"], correct: 1 },
                     
-                    // ===== CATEGORY 4: 句子逻辑 Sentence Logic (15题) - 2选项 =====
-                    { cat: 'logic', q_en: "Birds can fly?", q_zh: "鸟能飞吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
-                    { cat: 'logic', q_en: "Fish live in trees?", q_zh: "鱼住在树上吗?", a_en: ["No", "Yes"], a_zh: ["否", "是"], correct: 0 },
-                    { cat: 'logic', q_en: "Sun rises in the east?", q_zh: "太阳从东方升起吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
-                    { cat: 'logic', q_en: "Ice is hot?", q_zh: "冰是热的吗?", a_en: ["No", "Yes"], a_zh: ["否", "是"], correct: 0 },
-                    { cat: 'logic', q_en: "Elephants are bigger than mice?", q_zh: "大象比老鼠大吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
-                    { cat: 'logic', q_en: "Water flows upward?", q_zh: "水往上流吗?", a_en: ["No", "Yes"], a_zh: ["否", "是"], correct: 0 },
-                    { cat: 'logic', q_en: "Trees grow from seeds?", q_zh: "树从种子长出来吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
-                    { cat: 'logic', q_en: "Night comes after day?", q_zh: "夜晚在白天之后吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
-                    { cat: 'logic', q_en: "Penguins can swim?", q_zh: "企鹅会游泳吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
-                    { cat: 'logic', q_en: "Books are for reading?", q_zh: "书是用来阅读的吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
-                    { cat: 'logic', q_en: "Fire is cold?", q_zh: "火是冷的吗?", a_en: ["No", "Yes"], a_zh: ["否", "是"], correct: 0 },
-                    { cat: 'logic', q_en: "Chairs are for sitting?", q_zh: "椅子是用来坐的吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
-                    { cat: 'logic', q_en: "Rain makes things wet?", q_zh: "雨会让东西变湿吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
-                    { cat: 'logic', q_en: "Shoes go on hands?", q_zh: "鞋子穿在手上吗?", a_en: ["No", "Yes"], a_zh: ["否", "是"], correct: 0 },
-                    { cat: 'logic', q_en: "Clouds are in the sky?", q_zh: "云在天空中吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
+                    // ===== CATEGORY 4: 近义关系 Synonym (15题) =====
+                    { cat: 'synonym', level: 1, q_en: "Similar to Happy?", q_zh: "快乐的近义词?", a_en: ["Sad", "Joyful", "Angry", "Tired"], a_zh: ["悲伤", "欢乐", "生气", "累"], correct: 1 },
+                    { cat: 'synonym', level: 1, q_en: "Similar to Start?", q_zh: "开始的近义词?", a_en: ["End", "Begin", "Stop", "Finish"], a_zh: ["结束", "开始", "停", "完成"], correct: 1 },
+                    { cat: 'synonym', level: 2, q_en: "Similar to Brave?", q_zh: "勇敢的近义词?", a_en: ["Scared", "Courageous", "Weak", "Afraid"], a_zh: ["害怕", "勇敢", "弱", "恐惧"], correct: 1 },
+                    { cat: 'synonym', level: 2, q_en: "Similar to Smart?", q_zh: "聪明的近义词?", a_en: ["Dumb", "Intelligent", "Stupid", "Slow"], a_zh: ["笨", "智慧", "愚蠢", "慢"], correct: 1 },
+                    { cat: 'synonym', level: 2, q_en: "Similar to Beautiful?", q_zh: "美丽的近义词?", a_en: ["Ugly", "Pretty", "Bad", "Dark"], a_zh: ["丑", "漂亮", "坏", "暗"], correct: 1 },
+                    { cat: 'synonym', level: 3, q_en: "Similar to Difficult?", q_zh: "困难的近义词?", a_en: ["Easy", "Hard", "Simple", "Clear"], a_zh: ["容易", "艰难", "简单", "清晰"], correct: 1 },
+                    { cat: 'synonym', level: 3, q_en: "Similar to Ancient?", q_zh: "古老的近义词?", a_en: ["New", "Old", "Modern", "Recent"], a_zh: ["新", "旧", "现代", "最近"], correct: 1 },
+                    { cat: 'synonym', level: 3, q_en: "Similar to Vast?", q_zh: "广阔的近义词?", a_en: ["Tiny", "Huge", "Small", "Little"], a_zh: ["微小", "巨大", "小", "少"], correct: 1 },
+                    { cat: 'synonym', level: 4, q_en: "Similar to Accomplish?", q_zh: "完成的近义词?", a_en: ["Fail", "Achieve", "Try", "Start"], a_zh: ["失败", "达成", "尝试", "开始"], correct: 1 },
+                    { cat: 'synonym', level: 4, q_en: "Similar to Abundant?", q_zh: "充足的近义词?", a_en: ["Scarce", "Plentiful", "Few", "Rare"], a_zh: ["稀缺", "丰富", "少", "罕见"], correct: 1 },
+                    { cat: 'synonym', level: 4, q_en: "Similar to Evident?", q_zh: "明显的近义词?", a_en: ["Hidden", "Obvious", "Secret", "Unclear"], a_zh: ["隐藏", "显然", "秘密", "不清"], correct: 1 },
+                    { cat: 'synonym', level: 5, q_en: "Similar to Meticulous?", q_zh: "细致的近义词?", a_en: ["Careless", "Careful", "Sloppy", "Quick"], a_zh: ["粗心", "仔细", "草率", "快"], correct: 1 },
+                    { cat: 'synonym', level: 5, q_en: "Similar to Contemplate?", q_zh: "沉思的近义词?", a_en: ["Ignore", "Ponder", "Forget", "Rush"], a_zh: ["忽视", "思考", "忘记", "匆忙"], correct: 1 },
+                    { cat: 'synonym', level: 5, q_en: "Similar to Benevolent?", q_zh: "仁慈的近义词?", a_en: ["Mean", "Kind", "Cruel", "Harsh"], a_zh: ["刻薄", "善良", "残酷", "严厉"], correct: 1 },
+                    { cat: 'synonym', level: 5, q_en: "Similar to Innovative?", q_zh: "创新的近义词?", a_en: ["Old", "Creative", "Traditional", "Boring"], a_zh: ["旧", "创造性", "传统", "无聊"], correct: 1 },
                     
-                    // ===== CATEGORY 5: 扩展数学题库 Extended Math with Difficulty Levels (50+ 静态题) =====
-                    // Level 1: 基础加减法 (个位数)
-                    { cat: 'math', level: 1, q_en: "2 + 2 = ?", q_zh: "2 + 2 = ?", a_en: ["4", "3", "5", "6"], a_zh: ["4", "3", "5", "6"], correct: 0 },
-                    { cat: 'math', level: 1, q_en: "5 - 3 = ?", q_zh: "5 - 3 = ?", a_en: ["2", "1", "3", "4"], a_zh: ["2", "1", "3", "4"], correct: 0 },
-                    { cat: 'math', level: 1, q_en: "4 + 3 = ?", q_zh: "4 + 3 = ?", a_en: ["7", "6", "8", "9"], a_zh: ["7", "6", "8", "9"], correct: 0 },
-                    { cat: 'math', level: 1, q_en: "6 + 4 = ?", q_zh: "6 + 4 = ?", a_en: ["10", "9", "11", "8"], a_zh: ["10", "9", "11", "8"], correct: 0 },
-                    { cat: 'math', level: 1, q_en: "7 - 2 = ?", q_zh: "7 - 2 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
-                    { cat: 'math', level: 1, q_en: "Which is bigger: 5 or 8?", q_zh: "哪个更大: 5 还是 8?", a_en: ["8", "5", "Same", "Neither"], a_zh: ["8", "5", "一样", "都不"], correct: 0 },
-                    { cat: 'math', level: 1, q_en: "Which is smaller: 3 or 7?", q_zh: "哪个更小: 3 还是 7?", a_en: ["3", "7", "Same", "Neither"], a_zh: ["3", "7", "一样", "都不"], correct: 0 },
-                    { cat: 'math', level: 1, q_en: "8 - 5 = ?", q_zh: "8 - 5 = ?", a_en: ["3", "2", "4", "5"], a_zh: ["3", "2", "4", "5"], correct: 0 },
-                    { cat: 'math', level: 1, q_en: "1 + 9 = ?", q_zh: "1 + 9 = ?", a_en: ["10", "9", "11", "8"], a_zh: ["10", "9", "11", "8"], correct: 0 },
-                    { cat: 'math', level: 1, q_en: "10 - 6 = ?", q_zh: "10 - 6 = ?", a_en: ["4", "3", "5", "6"], a_zh: ["4", "3", "5", "6"], correct: 0 },
-                    { cat: 'math', level: 1, q_en: "3 + 5 = ?", q_zh: "3 + 5 = ?", a_en: ["8", "7", "9", "6"], a_zh: ["8", "7", "9", "6"], correct: 0 },
-                    { cat: 'math', level: 1, q_en: "9 - 4 = ?", q_zh: "9 - 4 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
-                    
-                    // Level 2: 两位数加减法
-                    { cat: 'math', level: 2, q_en: "12 + 8 = ?", q_zh: "12 + 8 = ?", a_en: ["20", "18", "22", "19"], a_zh: ["20", "18", "22", "19"], correct: 0 },
-                    { cat: 'math', level: 2, q_en: "15 - 7 = ?", q_zh: "15 - 7 = ?", a_en: ["8", "7", "9", "6"], a_zh: ["8", "7", "9", "6"], correct: 0 },
-                    { cat: 'math', level: 2, q_en: "25 + 15 = ?", q_zh: "25 + 15 = ?", a_en: ["40", "35", "45", "50"], a_zh: ["40", "35", "45", "50"], correct: 0 },
-                    { cat: 'math', level: 2, q_en: "30 - 18 = ?", q_zh: "30 - 18 = ?", a_en: ["12", "10", "14", "16"], a_zh: ["12", "10", "14", "16"], correct: 0 },
-                    { cat: 'math', level: 2, q_en: "17 + 23 = ?", q_zh: "17 + 23 = ?", a_en: ["40", "38", "42", "44"], a_zh: ["40", "38", "42", "44"], correct: 0 },
-                    { cat: 'math', level: 2, q_en: "50 - 22 = ?", q_zh: "50 - 22 = ?", a_en: ["28", "26", "30", "32"], a_zh: ["28", "26", "30", "32"], correct: 0 },
-                    { cat: 'math', level: 2, q_en: "14 + 26 = ?", q_zh: "14 + 26 = ?", a_en: ["40", "38", "42", "36"], a_zh: ["40", "38", "42", "36"], correct: 0 },
-                    { cat: 'math', level: 2, q_en: "45 - 19 = ?", q_zh: "45 - 19 = ?", a_en: ["26", "24", "28", "30"], a_zh: ["26", "24", "28", "30"], correct: 0 },
-                    { cat: 'math', level: 2, q_en: "33 + 27 = ?", q_zh: "33 + 27 = ?", a_en: ["60", "58", "62", "56"], a_zh: ["60", "58", "62", "56"], correct: 0 },
-                    { cat: 'math', level: 2, q_en: "70 - 35 = ?", q_zh: "70 - 35 = ?", a_en: ["35", "30", "40", "45"], a_zh: ["35", "30", "40", "45"], correct: 0 },
-                    { cat: 'math', level: 2, q_en: "22 + 18 = ?", q_zh: "22 + 18 = ?", a_en: ["40", "38", "42", "36"], a_zh: ["40", "38", "42", "36"], correct: 0 },
-                    { cat: 'math', level: 2, q_en: "55 - 28 = ?", q_zh: "55 - 28 = ?", a_en: ["27", "25", "29", "31"], a_zh: ["27", "25", "29", "31"], correct: 0 },
-                    
-                    // Level 3: 乘除法
-                    { cat: 'math', level: 3, q_en: "3 × 2 = ?", q_zh: "3 × 2 = ?", a_en: ["6", "5", "7", "8"], a_zh: ["6", "5", "7", "8"], correct: 0 },
-                    { cat: 'math', level: 3, q_en: "10 ÷ 2 = ?", q_zh: "10 ÷ 2 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
-                    { cat: 'math', level: 3, q_en: "2 × 5 = ?", q_zh: "2 × 5 = ?", a_en: ["10", "9", "11", "12"], a_zh: ["10", "9", "11", "12"], correct: 0 },
-                    { cat: 'math', level: 3, q_en: "4 × 3 = ?", q_zh: "4 × 3 = ?", a_en: ["12", "10", "14", "16"], a_zh: ["12", "10", "14", "16"], correct: 0 },
-                    { cat: 'math', level: 3, q_en: "20 ÷ 4 = ?", q_zh: "20 ÷ 4 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
-                    { cat: 'math', level: 3, q_en: "6 × 5 = ?", q_zh: "6 × 5 = ?", a_en: ["30", "25", "35", "40"], a_zh: ["30", "25", "35", "40"], correct: 0 },
-                    { cat: 'math', level: 3, q_en: "18 ÷ 3 = ?", q_zh: "18 ÷ 3 = ?", a_en: ["6", "5", "7", "8"], a_zh: ["6", "5", "7", "8"], correct: 0 },
-                    { cat: 'math', level: 3, q_en: "7 × 8 = ?", q_zh: "7 × 8 = ?", a_en: ["56", "54", "58", "60"], a_zh: ["56", "54", "58", "60"], correct: 0 },
-                    { cat: 'math', level: 3, q_en: "36 ÷ 6 = ?", q_zh: "36 ÷ 6 = ?", a_en: ["6", "5", "7", "8"], a_zh: ["6", "5", "7", "8"], correct: 0 },
-                    { cat: 'math', level: 3, q_en: "9 × 4 = ?", q_zh: "9 × 4 = ?", a_en: ["36", "32", "40", "44"], a_zh: ["36", "32", "40", "44"], correct: 0 },
-                    { cat: 'math', level: 3, q_en: "45 ÷ 5 = ?", q_zh: "45 ÷ 5 = ?", a_en: ["9", "8", "10", "11"], a_zh: ["9", "8", "10", "11"], correct: 0 },
-                    { cat: 'math', level: 3, q_en: "8 × 6 = ?", q_zh: "8 × 6 = ?", a_en: ["48", "42", "54", "60"], a_zh: ["48", "42", "54", "60"], correct: 0 },
-                    
-                    // Level 4: 多步运算
-                    { cat: 'math', level: 4, q_en: "3 × 4 + 5 = ?", q_zh: "3 × 4 + 5 = ?", a_en: ["17", "15", "19", "20"], a_zh: ["17", "15", "19", "20"], correct: 0 },
-                    { cat: 'math', level: 4, q_en: "20 - 6 × 2 = ?", q_zh: "20 - 6 × 2 = ?", a_en: ["8", "6", "10", "12"], a_zh: ["8", "6", "10", "12"], correct: 0 },
-                    { cat: 'math', level: 4, q_en: "15 ÷ 3 + 8 = ?", q_zh: "15 ÷ 3 + 8 = ?", a_en: ["13", "11", "15", "17"], a_zh: ["13", "11", "15", "17"], correct: 0 },
-                    { cat: 'math', level: 4, q_en: "(12 + 8) ÷ 4 = ?", q_zh: "(12 + 8) ÷ 4 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
-                    { cat: 'math', level: 4, q_en: "25 - 3 × 5 = ?", q_zh: "25 - 3 × 5 = ?", a_en: ["10", "8", "12", "15"], a_zh: ["10", "8", "12", "15"], correct: 0 },
-                    { cat: 'math', level: 4, q_en: "40 ÷ 8 + 12 = ?", q_zh: "40 ÷ 8 + 12 = ?", a_en: ["17", "15", "19", "20"], a_zh: ["17", "15", "19", "20"], correct: 0 },
-                    { cat: 'math', level: 4, q_en: "6 × (9 - 4) = ?", q_zh: "6 × (9 - 4) = ?", a_en: ["30", "25", "35", "40"], a_zh: ["30", "25", "35", "40"], correct: 0 },
-                    { cat: 'math', level: 4, q_en: "50 - 18 ÷ 3 = ?", q_zh: "50 - 18 ÷ 3 = ?", a_en: ["44", "42", "46", "48"], a_zh: ["44", "42", "46", "48"], correct: 0 },
-                    { cat: 'math', level: 4, q_en: "8 × 3 - 10 = ?", q_zh: "8 × 3 - 10 = ?", a_en: ["14", "12", "16", "18"], a_zh: ["14", "12", "16", "18"], correct: 0 },
-                    { cat: 'math', level: 4, q_en: "(15 - 5) × 3 = ?", q_zh: "(15 - 5) × 3 = ?", a_en: ["30", "25", "35", "40"], a_zh: ["30", "25", "35", "40"], correct: 0 },
-                    
-                    // Level 5: 高级运算
-                    { cat: 'math', level: 5, q_en: "(15 + 25) × 2 = ?", q_zh: "(15 + 25) × 2 = ?", a_en: ["80", "70", "90", "100"], a_zh: ["80", "70", "90", "100"], correct: 0 },
-                    { cat: 'math', level: 5, q_en: "100 - 12 × 5 = ?", q_zh: "100 - 12 × 5 = ?", a_en: ["40", "30", "50", "60"], a_zh: ["40", "30", "50", "60"], correct: 0 },
-                    { cat: 'math', level: 5, q_en: "72 ÷ (3 + 5) = ?", q_zh: "72 ÷ (3 + 5) = ?", a_en: ["9", "8", "10", "11"], a_zh: ["9", "8", "10", "11"], correct: 0 },
-                    { cat: 'math', level: 5, q_en: "8 × 7 - 3 × 9 = ?", q_zh: "8 × 7 - 3 × 9 = ?", a_en: ["29", "27", "31", "33"], a_zh: ["29", "27", "31", "33"], correct: 0 },
-                    { cat: 'math', level: 5, q_en: "120 ÷ 4 + 15 = ?", q_zh: "120 ÷ 4 + 15 = ?", a_en: ["45", "40", "50", "55"], a_zh: ["45", "40", "50", "55"], correct: 0 },
-                    { cat: 'math', level: 5, q_en: "(60 - 20) ÷ 8 = ?", q_zh: "(60 - 20) ÷ 8 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
-                    { cat: 'math', level: 5, q_en: "14 × 5 - 25 = ?", q_zh: "14 × 5 - 25 = ?", a_en: ["45", "40", "50", "55"], a_zh: ["45", "40", "50", "55"], correct: 0 },
-                    { cat: 'math', level: 5, q_en: "96 ÷ (4 × 2) = ?", q_zh: "96 ÷ (4 × 2) = ?", a_en: ["12", "10", "14", "16"], a_zh: ["12", "10", "14", "16"], correct: 0 },
-                    { cat: 'math', level: 5, q_en: "(25 + 35) ÷ 12 = ?", q_zh: "(25 + 35) ÷ 12 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
-                    { cat: 'math', level: 5, q_en: "11 × 9 - 48 = ?", q_zh: "11 × 9 - 48 = ?", a_en: ["51", "49", "53", "55"], a_zh: ["51", "49", "53", "55"], correct: 0 },
+                    // ===== CATEGORY 5: 逻辑推理 Logic (15题) =====
+                    { cat: 'logic', level: 1, q_en: "If all cats are animals, and Tom is a cat, then Tom is?", q_zh: "如果所有猫都是动物，Tom是猫，那么Tom是?", a_en: ["Dog", "Animal", "Bird", "Fish"], a_zh: ["狗", "动物", "鸟", "鱼"], correct: 1 },
+                    { cat: 'logic', level: 2, q_en: "If A > B and B > C, then:", q_zh: "如果 A > B 且 B > C，那么:", a_en: ["A > C", "A < C", "A = C", "Unknown"], a_zh: ["A > C", "A < C", "A = C", "不确定"], correct: 0 },
+                    { cat: 'logic', level: 2, q_en: "All birds have wings. Penguins are birds. Therefore:", q_zh: "所有鸟都有翅膀。企鹅是鸟。因此:", a_en: ["Penguins fly", "Penguins have wings", "Penguins swim", "Penguins are fish"], a_zh: ["企鹅会飞", "企鹅有翅膀", "企鹅会游", "企鹅是鱼"], correct: 1 },
+                    { cat: 'logic', level: 3, q_en: "If it rains, the ground gets wet. The ground is wet. Therefore:", q_zh: "如果下雨，地面会湿。地面是湿的。因此:", a_en: ["It rained", "It might have rained", "It's sunny", "It's dry"], a_zh: ["下过雨", "可能下过雨", "晴天", "干燥"], correct: 1 },
+                    { cat: 'logic', level: 3, q_en: "All roses are flowers. Some flowers are red. Therefore:", q_zh: "所有玫瑰都是花。一些花是红色的。因此:", a_en: ["All roses are red", "Some roses might be red", "No roses are red", "All flowers are roses"], a_zh: ["所有玫瑰是红的", "一些玫瑰可能是红的", "没有玫瑰是红的", "所有花是玫瑰"], correct: 1 },
+                    { cat: 'logic', level: 3, q_en: "If John is taller than Mary, and Mary is taller than Sue:", q_zh: "如果John比Mary高，Mary比Sue高:", a_en: ["John is taller than Sue", "Sue is taller than John", "John = Sue", "Cannot determine"], a_zh: ["John比Sue高", "Sue比John高", "John = Sue", "无法确定"], correct: 0 },
+                    { cat: 'logic', level: 4, q_en: "Some A are B. All B are C. Therefore:", q_zh: "一些A是B。所有B是C。因此:", a_en: ["All A are C", "Some A are C", "No A are C", "All C are A"], a_zh: ["所有A是C", "一些A是C", "没有A是C", "所有C是A"], correct: 1 },
+                    { cat: 'logic', level: 4, q_en: "If the statement 'All X are Y' is true, which must be true?", q_zh: "如果"所有X是Y"为真，以下哪个必为真?", a_en: ["All Y are X", "Some Y are X", "No X are Y", "Cannot determine"], a_zh: ["所有Y是X", "一些Y是X", "没有X是Y", "无法确定"], correct: 3 },
+                    { cat: 'logic', level: 4, q_en: "Either A or B is true. A is false. Therefore:", q_zh: "A或B为真。A是假的。因此:", a_en: ["B is false", "B is true", "Both false", "Cannot determine"], a_zh: ["B是假", "B是真", "都是假", "无法确定"], correct: 1 },
+                    { cat: 'logic', level: 5, q_en: "If not-A then B. Not-B. Therefore:", q_zh: "如果非A则B。非B。因此:", a_en: ["A", "Not-A", "B", "Cannot determine"], a_zh: ["A", "非A", "B", "无法确定"], correct: 0 },
+                    { cat: 'logic', level: 5, q_en: "All P are Q. No Q are R. Some S are P. Therefore:", q_zh: "所有P是Q。没有Q是R。一些S是P。因此:", a_en: ["Some S are not R", "All S are R", "No S are R", "Cannot determine"], a_zh: ["一些S不是R", "所有S是R", "没有S是R", "无法确定"], correct: 0 },
+                    { cat: 'logic', level: 5, q_en: "If A then B. If B then C. A is true. Therefore:", q_zh: "如果A则B。如果B则C。A为真。因此:", a_en: ["C is true", "C is false", "B is false", "Cannot determine"], a_zh: ["C为真", "C为假", "B为假", "无法确定"], correct: 0 },
+                    { cat: 'logic', level: 2, q_en: "Today is Monday. Yesterday was:", q_zh: "今天是星期一。昨天是:", a_en: ["Sunday", "Tuesday", "Saturday", "Friday"], a_zh: ["星期日", "星期二", "星期六", "星期五"], correct: 0 },
+                    { cat: 'logic', level: 3, q_en: "A train leaves at 3pm and arrives at 6pm. Journey time:", q_zh: "火车3点出发，6点到达。旅程时间:", a_en: ["2 hours", "3 hours", "4 hours", "5 hours"], a_zh: ["2小时", "3小时", "4小时", "5小时"], correct: 1 },
+                    { cat: 'logic', level: 4, q_en: "Pattern: 2, 4, 8, 16, ?", q_zh: "规律: 2, 4, 8, 16, ?", a_en: ["20", "24", "32", "40"], a_zh: ["20", "24", "32", "40"], correct: 2 }
                 ];
                 
-                // ========== 动态数学题生成器 DYNAMIC MATH GENERATOR ==========
+                // ========== 动态数学生成器 (5 Levels) ==========
                 this.mathGenerator = {
-                    // Level 1: 个位数加减法
+                    // Level 1: 简单加减法 (10以内)
                     level1: () => {
                         const op = Math.random() < 0.5 ? '+' : '-';
-                        let a = Math.floor(Math.random() * 9) + 1;
-                        let b = Math.floor(Math.random() * 9) + 1;
+                        let a = Math.floor(Math.random() * 10) + 1;
+                        let b = Math.floor(Math.random() * 10) + 1;
                         if (op === '-' && b > a) [a, b] = [b, a];
                         const answer = op === '+' ? a + b : a - b;
-                        const distractors = this.generateDistractors(answer, 3, 1, 15);
+                        const distractors = this.generateDistractors(answer, 3, 1, 20);
                         return {
                             cat: 'math',
                             level: 1,
@@ -3791,6 +3748,7 @@
                         };
                     },
                     
+                    // Level 2: 两位数加减法
                     level2: () => {
                         const op = Math.random() < 0.5 ? '+' : '-';
                         let a = Math.floor(Math.random() * 50) + 10;
@@ -3810,6 +3768,7 @@
                         };
                     },
                     
+                    // Level 3: 乘除法
                     level3: () => {
                         const op = Math.random() < 0.6 ? '×' : '÷';
                         if (op === '×') {
@@ -3845,6 +3804,7 @@
                         }
                     },
                     
+                    // Level 4: 混合运算
                     level4: () => {
                         const patterns = [
                             () => {
@@ -3868,13 +3828,6 @@
                                 const a = Math.floor(sum * Math.random());
                                 const b = sum - a;
                                 return { q: `(${a} + ${b}) ÷ ${c}`, answer };
-                            },
-                            () => {
-                                const a = Math.floor(Math.random() * 8) + 2;
-                                const b = Math.floor(Math.random() * 10) + 5;
-                                const c = Math.floor(Math.random() * (b - 1)) + 1;
-                                const answer = a * (b - c);
-                                return { q: `${a} × (${b} - ${c})`, answer };
                             }
                         ];
                         const pattern = patterns[Math.floor(Math.random() * patterns.length)]();
@@ -3891,6 +3844,7 @@
                         };
                     },
                     
+                    // Level 5: 复杂混合运算
                     level5: () => {
                         const patterns = [
                             () => {
@@ -3908,19 +3862,11 @@
                                 return { q: `${a} - ${b} × ${c}`, answer };
                             },
                             () => {
-                                const b = Math.floor(Math.random() * 6) + 2;
-                                const c = Math.floor(Math.random() * 6) + 2;
-                                const answer = Math.floor(Math.random() * 15) + 5;
-                                const a = answer * (b + c);
-                                return { q: `${a} ÷ (${b} + ${c})`, answer };
-                            },
-                            () => {
-                                const a = Math.floor(Math.random() * 10) + 5;
+                                const a = Math.floor(Math.random() * 8) + 2;
                                 const b = Math.floor(Math.random() * 10) + 5;
-                                const c = Math.floor(Math.random() * 8) + 2;
-                                const d = Math.floor(Math.random() * 8) + 2;
-                                const answer = Math.max(a * b - c * d, 0);
-                                return { q: `${a} × ${b} - ${c} × ${d}`, answer };
+                                const c = Math.floor(Math.random() * (b - 1)) + 1;
+                                const answer = a * (b - c);
+                                return { q: `${a} × (${b} - ${c})`, answer };
                             }
                         ];
                         const pattern = patterns[Math.floor(Math.random() * patterns.length)]();
@@ -3937,85 +3883,35 @@
                         };
                     },
                     
-                    generateDistractors: function(correct, count, variance, max) {
-                        const options = [correct];
-                        const used = new Set([correct]);
-                        let attempts = 0;
-                        const maxAttempts = 100;
-                        
-                        while (options.length < count + 1 && attempts < maxAttempts) {
-                            const offset = Math.floor(Math.random() * variance * 2 + 1) - variance;
-                            let distractor = correct + offset;
-                            
-                            if (distractor >= 0 && distractor <= max && !used.has(distractor) && distractor !== correct) {
-                                options.push(distractor);
-                                used.add(distractor);
-                            }
-                            attempts++;
+                    generate: function(level) {
+                        const methodName = `level${level}`;
+                        if (this[methodName]) {
+                            return this[methodName]();
                         }
-                        
-                        while (options.length < count + 1) {
-                            const distractor = Math.floor(Math.random() * max);
-                            if (!used.has(distractor) && distractor !== correct) {
-                                options.push(distractor);
-                                used.add(distractor);
-                            }
-                        }
-                        
-                        return options.sort(() => Math.random() - 0.5);
+                        return this.level2();
                     },
                     
-                    generate: function(level) {
-                        switch(level) {
-                            case 1: return this.level1();
-                            case 2: return this.level2();
-                            case 3: return this.level3();
-                            case 4: return this.level4();
-                            case 5: return this.level5();
-                            default: return this.level1();
+                    generateDistractors: function(correct, count, variance, max) {
+                        const distractors = [correct];
+                        while (distractors.length < count + 1) {
+                            const offset = Math.floor(Math.random() * variance * 2 + 1) - variance;
+                            const distractor = correct + offset;
+                            if (distractor > 0 && distractor <= max && !distractors.includes(distractor)) {
+                                distractors.push(distractor);
+                            }
                         }
+                        for (let i = distractors.length - 1; i > 0; i--) {
+                            const j = Math.floor(Math.random() * (i + 1));
+                            [distractors[i], distractors[j]] = [distractors[j], distractors[i]];
+                        }
+                        return distractors;
                     }
                 };
                 
-                // ========== DIFFICULTY SYSTEM ==========
-                this.difficultySystem = {
-                    currentLevel: 2,
-                    consecutiveCorrect: 0,
-                    consecutiveWrong: 0,
-                    upgradeThreshold: 5,
-                    downgradeThreshold: 3,
-                    
-                    recordAnswer: function(isCorrect) {
-                        if (isCorrect) {
-                            this.consecutiveCorrect++;
-                            this.consecutiveWrong = 0;
-                            if (this.consecutiveCorrect >= this.upgradeThreshold && this.currentLevel < 5) {
-                                this.currentLevel++;
-                                this.consecutiveCorrect = 0;
-                                return 'upgrade';
-                            }
-                        } else {
-                            this.consecutiveWrong++;
-                            this.consecutiveCorrect = 0;
-                            if (this.consecutiveWrong >= this.downgradeThreshold && this.currentLevel > 1) {
-                                this.currentLevel--;
-                                this.consecutiveWrong = 0;
-                                return 'downgrade';
-                            }
-                        }
-                        return 'same';
-                    },
-                    
-                    getLevel: function() { return this.currentLevel; },
-                    
-                    getProgress: function() {
-                        return {
-                            level: this.currentLevel,
-                            correctStreak: this.consecutiveCorrect,
-                            wrongStreak: this.consecutiveWrong
-                        };
-                    }
-                };
+                // ========== 题目追踪（避免重复） ==========
+                this.usedQuestions = new Set();
+                this.shuffledQuestionBank = [...this.questionBank].sort(() => Math.random() - 0.5);
+                this.questionBankIndex = 0;
                 
                 // ========== EVENT LISTENERS ==========
                 this.onDown = (e) => {
@@ -4035,12 +3931,11 @@
                     if (!this.isHolding || this.phase !== 'breathing') return;
                     this.isHolding = false;
                     
-                    // 检查匹配度
                     const targetScale = this.getTargetRingScale();
                     const scaleDiff = Math.abs(this.playerRingScale - targetScale);
-                    const matchQuality = Math.max(0, 1 - scaleDiff * 2); // 差0.5 = 0%
+                    const matchQuality = Math.max(0, 1 - scaleDiff * 2);
                     
-                    if (matchQuality >= 0.7) { // 70%以上算成功
+                    if (matchQuality >= 0.7) {
                         this.triggerPerfectActivation();
                     } else {
                         this.triggerFailedActivation();
@@ -4053,13 +3948,12 @@
                 document.addEventListener('touchend', this.onUp);
                 document.addEventListener('touchcancel', this.onUp);
                 
-                console.log('✓ Module 3 initialized');
+                console.log('✓ Module 3 Ultimate Edition initialized');
             }
             
             // ========== VISUAL CREATION ==========
             
             createWabiSabiRing(baseRadius, color) {
-                // 侘寂风格的不完美环
                 const points = [];
                 const segments = 64;
                 
@@ -4086,7 +3980,6 @@
             }
             
             createSmoothRing(radius, color) {
-                // 平滑的完美圆环
                 const points = [];
                 const segments = 64;
                 
@@ -4153,10 +4046,9 @@
             // ========== INTERACTION ==========
             
             getTargetRingScale() {
-                // 获取目标环当前的呼吸缩放值
                 const phase = (this.breathTime % this.breathCycleTime) / this.breathCycleTime;
                 const breathCurve = this.easeInOutSine(phase);
-                return 0.8 + breathCurve * 0.4; // 0.8-1.2
+                return 0.8 + breathCurve * 0.4;
             }
             
             triggerPerfectActivation() {
@@ -4231,17 +4123,51 @@
                 });
             }
             
+            selectQuestion() {
+                // 70%动态数学，30%题库
+                const useDynamic = Math.random() < 0.7;
+                
+                if (useDynamic) {
+                    return this.mathGenerator.generate(this.currentLevel);
+                } else {
+                    // 从题库选择匹配当前level的题
+                    const availableQuestions = this.questionBank.filter(q => 
+                        q.level === this.currentLevel && !this.usedQuestions.has(JSON.stringify(q))
+                    );
+                    
+                    if (availableQuestions.length > 0) {
+                        const q = availableQuestions[Math.floor(Math.random() * availableQuestions.length)];
+                        this.usedQuestions.add(JSON.stringify(q));
+                        return q;
+                    } else {
+                        // 如果该难度题目用完，用动态生成兜底
+                        return this.mathGenerator.generate(this.currentLevel);
+                    }
+                }
+            }
+            
             showQuestion() {
                 this.phase = 'answer';
                 this.questionStartTime = Date.now();
                 
-                const q = this.questionBank[Math.floor(Math.random() * this.questionBank.length)];
+                const q = this.selectQuestion();
                 this.currentQuestion = q;
                 
                 const overlay = document.getElementById('question-overlay');
                 const lang = I18N.lang;
                 
-                document.getElementById('question-text').textContent = lang === 'zh' ? q.q_zh : q.q_en;
+                const categoryLabel = {
+                    semantic: '🔖',
+                    association: '🔗',
+                    antonym: '↔️',
+                    synonym: '≈',
+                    logic: '🧩',
+                    math: '🔢'
+                };
+                const badge = categoryLabel[q.cat] || '';
+                const levelBadge = `L${q.level || this.currentLevel}`;
+                
+                document.getElementById('question-text').textContent = `${badge} ${levelBadge} ${lang === 'zh' ? q.q_zh : q.q_en}`;
                 
                 const answersContainer = document.getElementById('answer-options');
                 if (answersContainer) {
@@ -4257,18 +4183,39 @@
                 }
                 
                 overlay.classList.add('active');
+                
+                console.log(`📚 Q: ${q.cat} L${q.level || this.currentLevel} ${q.dynamic ? '(Dynamic)' : '(Bank)'}`);
             }
             
             submitAnswer(index) {
                 if (this.phase !== 'answer') return;
                 
                 const isCorrect = index === this.currentQuestion.correct;
-                const levelChange = this.difficultySystem.recordAnswer(isCorrect);
                 
+                // 更新难度系统
                 if (isCorrect) {
                     this.score += 10;
+                    this.consecutiveCorrect++;
+                    this.consecutiveWrong = 0;
+                    this.totalCorrectCount++;
                     Sound.play('click');
+                    
+                    // 快速升级到最高级
+                    if (this.totalCorrectCount >= this.DIFFICULTY_RULES.quickUpgradeThreshold && this.currentLevel < 5) {
+                        this.currentLevel = 5;
+                        this.consecutiveCorrect = 0;
+                        this.showLevelUpNotification(5, 'MASTERY ACHIEVED');
+                    }
+                    // 正常升级
+                    else if (this.consecutiveCorrect >= this.DIFFICULTY_RULES.upgradeThreshold && this.currentLevel < 5) {
+                        this.currentLevel++;
+                        this.consecutiveCorrect = 0;
+                        this.showLevelUpNotification(this.currentLevel, 'LEVEL UP');
+                    }
                 } else {
+                    this.consecutiveWrong++;
+                    this.consecutiveCorrect = 0;
+                    
                     try {
                         if (typeof Tone !== 'undefined') {
                             const synth = new Tone.Synth().toDestination();
@@ -4276,12 +4223,13 @@
                             setTimeout(() => synth.dispose(), 200);
                         }
                     } catch(e) {}
-                }
-                
-                if (levelChange === 'upgrade') {
-                    this.showLevelNotification('LEVEL UP', 'upgrade');
-                } else if (levelChange === 'downgrade') {
-                    this.showLevelNotification('ADJUST', 'downgrade');
+                    
+                    // 降级
+                    if (this.consecutiveWrong >= this.DIFFICULTY_RULES.downgradeThreshold && this.currentLevel > 1) {
+                        this.currentLevel--;
+                        this.consecutiveWrong = 0;
+                        this.showLevelDownNotification(this.currentLevel);
+                    }
                 }
                 
                 this.questionCount++;
@@ -4296,104 +4244,165 @@
                 }
             }
             
-            showLevelNotification(message, type) {
+            showLevelUpNotification(level, message) {
                 const notification = document.createElement('div');
-                notification.className = `level-notification ${type}`;
-                notification.textContent = message;
+                notification.className = 'level-notification upgrade';
+                notification.innerHTML = `
+                    <div style="font-size: 0.6rem; opacity: 0.7; margin-bottom: 0.5rem;">${message}</div>
+                    <div style="font-size: 2rem; font-weight: 500;">LEVEL ${level}</div>
+                `;
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    padding: 2rem 3rem;
+                    background: transparent;
+                    border: 2px solid #2a2a2a;
+                    color: #2a2a2a;
+                    font-family: 'Inter', sans-serif;
+                    text-align: center;
+                    z-index: 10000;
+                    pointer-events: none;
+                    animation: minimalFadeInOut 2.5s ease-in-out;
+                `;
+                
                 document.body.appendChild(notification);
+                Sound.play('click', 'G4', 0.9);
+                
                 setTimeout(() => {
                     if (document.body.contains(notification)) {
                         document.body.removeChild(notification);
                     }
                 }, 2500);
+                
+                console.log(`📈 LEVEL UP → ${level}`);
             }
             
-            // ========== UPDATE LOOP ==========
+            showLevelDownNotification(level) {
+                const notification = document.createElement('div');
+                notification.className = 'level-notification downgrade';
+                notification.innerHTML = `
+                    <div style="font-size: 0.6rem; opacity: 0.7; margin-bottom: 0.5rem;">ADJUSTING</div>
+                    <div style="font-size: 2rem; font-weight: 500;">LEVEL ${level}</div>
+                `;
+                notification.style.cssText = `
+                    position: fixed;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    padding: 2rem 3rem;
+                    background: transparent;
+                    border: 2px solid #666;
+                    color: #666;
+                    font-family: 'Inter', sans-serif;
+                    text-align: center;
+                    z-index: 10000;
+                    pointer-events: none;
+                    animation: minimalFadeInOut 2.5s ease-in-out;
+                `;
+                
+                document.body.appendChild(notification);
+                
+                setTimeout(() => {
+                    if (document.body.contains(notification)) {
+                        document.body.removeChild(notification);
+                    }
+                }, 2500);
+                
+                console.log(`📉 Level adjusted → ${level}`);
+            }
+            
+            // ========== UPDATE LOOP (更丝滑的动画) ==========
             
             update(stats, deltaTime) {
                 if (!this.isActive) return;
                 
-                // 无痕循环：时间持续累加
                 this.breathTime += deltaTime;
                 
-                // 计算呼吸相位
                 const phase = (this.breathTime % this.breathCycleTime) / this.breathCycleTime;
                 const breathCurve = this.easeInOutSine(phase);
                 
-                // === 目标环呼吸（0.8-1.2倍） ===
+                // === 目标环呼吸 (更丝滑) ===
                 const targetScale = 0.8 + breathCurve * 0.4;
                 this.targetRing.scale.set(targetScale, targetScale, 1);
-                this.targetRing.material.opacity = 0.4 + breathCurve * 0.3;
+                this.targetRing.material.opacity = 0.4 + breathCurve * 0.25;
                 
-                // === 外圈指示点跟随目标环 ===
+                // === 外圈红点丝滑跟随 ===
                 this.indicatorDots.forEach((dot, i) => {
-                    const angle = dot.userData.angle + this.breathTime * 0.2;
+                    const angle = dot.userData.angle + this.breathTime * 0.15;
                     const radius = dot.userData.baseRadius * targetScale;
                     
-                    dot.position.set(
-                        Math.cos(angle) * radius,
-                        Math.sin(angle) * radius,
-                        0
-                    );
+                    // 使用lerp使移动更丝滑
+                    const targetX = Math.cos(angle) * radius;
+                    const targetY = Math.sin(angle) * radius;
+                    dot.position.x += (targetX - dot.position.x) * deltaTime * 8;
+                    dot.position.y += (targetY - dot.position.y) * deltaTime * 8;
                     
                     dot.material.opacity = 0.6 + breathCurve * 0.3;
                     const dotScale = 0.8 + breathCurve * 0.4;
                     dot.scale.set(dotScale, dotScale, 1);
                 });
                 
-                // === 神经网络节点细微呼吸 ===
+                // === 神经网络细微呼吸 ===
                 this.neurons.forEach(neuron => {
-                    const phase = neuron.userData.phase + this.breathTime * 2;
+                    const phase = neuron.userData.phase + this.breathTime * 1.5;
                     const pulse = Math.sin(phase) * 0.5 + 0.5;
                     const scale = 0.7 + pulse * 0.3 + breathCurve * 0.2;
                     neuron.scale.set(scale, scale, scale);
-                    neuron.material.opacity = 0.2 + pulse * 0.2 + breathCurve * 0.1;
+                    neuron.material.opacity = 0.2 + pulse * 0.15 + breathCurve * 0.1;
                 });
                 
-                // === 按住交互：玩家环扩张 ===
+                // === 按住交互：玩家环丝滑扩张 ===
                 if (this.isHolding && this.phase === 'breathing') {
                     this.holdTime += deltaTime;
                     
-                    // 玩家环从0扩张到1.5（2秒）
-                    const expansionSpeed = 0.5; // 每秒扩张0.5
-                    this.playerRingScale = Math.min(1.5, this.playerRingScale + deltaTime * expansionSpeed);
+                    // 玩家环扩张速度根据时间调整，更自然
+                    const expansionSpeed = 0.45;
+                    const targetPlayerScale = Math.min(1.5, this.playerRingScale + deltaTime * expansionSpeed);
                     
-                    // 更新玩家环视觉
+                    // lerp使扩张更丝滑
+                    this.playerRingScale += (targetPlayerScale - this.playerRingScale) * deltaTime * 10;
+                    
                     this.playerRing.scale.set(this.playerRingScale, this.playerRingScale, 1);
-                    this.playerRing.material.opacity = 0.8;
+                    this.playerRing.material.opacity += (0.8 - this.playerRing.material.opacity) * deltaTime * 8;
                     
-                    // === 检测匹配度 ===
+                    // === 匹配检测 ===
                     const scaleDiff = Math.abs(this.playerRingScale - targetScale);
-                    const isMatched = scaleDiff < 0.15; // 容差范围
+                    const isMatched = scaleDiff < 0.15;
                     
                     if (isMatched) {
-                        // 重叠时：匹配指示器发光
+                        // 匹配时的丝滑反馈
                         this.matchRing.scale.set(targetScale, targetScale, 1);
-                        this.matchRing.material.opacity = 0.8;
+                        this.matchRing.material.opacity += (0.9 - this.matchRing.material.opacity) * deltaTime * 12;
                         
-                        // 玩家环变绿
-                        this.playerRing.material.color.setHex(0x00cc00);
+                        // 玩家环丝滑变绿
+                        const currentColor = this.playerRing.material.color;
+                        const targetColor = new THREE.Color(0x00cc00);
+                        currentColor.lerp(targetColor, deltaTime * 10);
                         
-                        // 显示波峰指示
                         const peakIndicator = document.getElementById('peak-indicator');
                         if (peakIndicator) peakIndicator.classList.add('active');
                     } else {
-                        // 不匹配：保持原色
-                        this.playerRing.material.color.setHex(0x2a2a2a);
-                        this.matchRing.material.opacity = 0;
+                        // 不匹配时丝滑恢复
+                        const currentColor = this.playerRing.material.color;
+                        const targetColor = new THREE.Color(0x2a2a2a);
+                        currentColor.lerp(targetColor, deltaTime * 10);
+                        
+                        this.matchRing.material.opacity += (0 - this.matchRing.material.opacity) * deltaTime * 12;
                         
                         const peakIndicator = document.getElementById('peak-indicator');
                         if (peakIndicator) peakIndicator.classList.remove('active');
                     }
                 } else {
-                    // 没有按住：隐藏玩家环
-                    this.playerRing.material.opacity = Math.max(0, this.playerRing.material.opacity - deltaTime * 3);
-                    if (this.playerRing.material.opacity <= 0) {
+                    // 松开后丝滑淡出
+                    this.playerRing.material.opacity += (0 - this.playerRing.material.opacity) * deltaTime * 6;
+                    if (this.playerRing.material.opacity <= 0.01) {
                         this.playerRing.scale.set(0, 0, 1);
                     }
                     
-                    this.matchRing.material.opacity = Math.max(0, this.matchRing.material.opacity - deltaTime * 3);
-                    if (this.matchRing.material.opacity <= 0) {
+                    this.matchRing.material.opacity += (0 - this.matchRing.material.opacity) * deltaTime * 6;
+                    if (this.matchRing.material.opacity <= 0.01) {
                         this.matchRing.scale.set(0, 0, 1);
                     }
                     
@@ -4417,8 +4426,8 @@
                     }
                 }
                 
-                // === 整体旋转 ===
-                this.group.rotation.z += deltaTime * 0.05;
+                // === 整体旋转 (更慢更优雅) ===
+                this.group.rotation.z += deltaTime * 0.03;
                 
                 // === 更新UI ===
                 stats.score = this.score;
@@ -4427,13 +4436,12 @@
                 const difficultyDisplay = document.getElementById('difficulty-display');
                 if (difficultyDisplay) {
                     difficultyDisplay.style.display = 'block';
-                    const progress = this.difficultySystem.getProgress();
                     const levelEl = document.getElementById('current-level');
                     const correctEl = document.getElementById('streak-correct');
                     const wrongEl = document.getElementById('streak-wrong');
-                    if (levelEl) levelEl.textContent = progress.level;
-                    if (correctEl) correctEl.textContent = `✓ Streak: ${progress.correctStreak}/5`;
-                    if (wrongEl) wrongEl.textContent = `✗ Streak: ${progress.wrongStreak}/3`;
+                    if (levelEl) levelEl.textContent = this.currentLevel;
+                    if (correctEl) correctEl.textContent = `✓ Streak: ${this.consecutiveCorrect}/5`;
+                    if (wrongEl) wrongEl.textContent = `✗ Streak: ${this.consecutiveWrong}/3`;
                 }
             }
             
@@ -4443,10 +4451,14 @@
                 return -(Math.cos(Math.PI * x) - 1) / 2;
             }
             
+            easeInOutCubic(x) {
+                return x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2;
+            }
+            
             // ========== CLEANUP ==========
             
             cleanup() {
-                console.log('🧹 Cleaning up Module 3...');
+                console.log('🧹 Cleaning up Module 3 Ultimate...');
                 this.isActive = false;
                 
                 const breathHint = document.getElementById('breath-hint');
@@ -4470,7 +4482,7 @@
                     Visual.scene.remove(this.group);
                 }
                 
-                console.log('✓ Module 3 cleaned up');
+                console.log('✓ Module 3 Ultimate cleaned up');
             }
         }
 
