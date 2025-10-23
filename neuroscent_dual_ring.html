@@ -3613,13 +3613,369 @@
                 
                 // ========== QUESTION BANK ==========
                 this.questionBank = [
+                    // ===== CATEGORY 1: 语义归类 Semantic Categorization (25题) =====
                     { cat: 'semantic', q_en: "Which doesn't belong: Rose, Tulip, Oak, Daisy?", q_zh: "哪个不属于同类: 玫瑰、郁金香、橡树、雏菊?", a_en: ["Rose", "Tulip", "Oak", "Daisy"], a_zh: ["玫瑰", "郁金香", "橡树", "雏菊"], correct: 2 },
                     { cat: 'semantic', q_en: "Odd one out: Apple, Orange, Carrot, Banana?", q_zh: "哪个不同: 苹果、橙子、胡萝卜、香蕉?", a_en: ["Apple", "Orange", "Carrot", "Banana"], a_zh: ["苹果", "橙子", "胡萝卜", "香蕉"], correct: 2 },
                     { cat: 'semantic', q_en: "Which is not a mammal: Dolphin, Shark, Whale, Seal?", q_zh: "哪个不是哺乳动物: 海豚、鲨鱼、鲸鱼、海豹?", a_en: ["Dolphin", "Shark", "Whale", "Seal"], a_zh: ["海豚", "鲨鱼", "鲸鱼", "海豹"], correct: 1 },
-                    { cat: 'math', q_en: "7 + 5 = ?", q_zh: "7 + 5 = ?", a_en: ["10", "12", "13", "15"], a_zh: ["10", "12", "13", "15"], correct: 1, level: 1 },
-                    { cat: 'math', q_en: "15 - 8 = ?", q_zh: "15 - 8 = ?", a_en: ["6", "7", "8", "9"], a_zh: ["6", "7", "8", "9"], correct: 1, level: 1 },
-                    { cat: 'math', q_en: "9 × 6 = ?", q_zh: "9 × 6 = ?", a_en: ["48", "52", "54", "56"], a_zh: ["48", "52", "54", "56"], correct: 2, level: 2 }
+                    { cat: 'semantic', q_en: "Which is a reptile: Frog, Lizard, Salamander, Toad?", q_zh: "哪个是爬行动物: 青蛙、蜥蜴、蝾螈、蟾蜍?", a_en: ["Frog", "Lizard", "Salamander", "Toad"], a_zh: ["青蛙", "蜥蜴", "蝾螈", "蟾蜍"], correct: 1 },
+                    { cat: 'semantic', q_en: "Odd tool: Hammer, Screwdriver, Wrench, Pencil?", q_zh: "奇怪的工具: 锤子、螺丝刀、扳手、铅笔?", a_en: ["Hammer", "Screwdriver", "Wrench", "Pencil"], a_zh: ["锤子", "螺丝刀", "扳手", "铅笔"], correct: 3 },
+                    { cat: 'semantic', q_en: "Which is not furniture: Chair, Table, Piano, Lamp?", q_zh: "哪个不是家具: 椅子、桌子、钢琴、台灯?", a_en: ["Chair", "Table", "Piano", "Lamp"], a_zh: ["椅子", "桌子", "钢琴", "台灯"], correct: 2 },
+                    { cat: 'semantic', q_en: "Odd vehicle: Car, Bus, Bicycle, Airplane?", q_zh: "不同的交通工具: 汽车、公交车、自行车、飞机?", a_en: ["Car", "Bus", "Bicycle", "Airplane"], a_zh: ["汽车", "公交车", "自行车", "飞机"], correct: 3 },
+                    { cat: 'semantic', q_en: "Which is not a beverage: Water, Milk, Soup, Juice?", q_zh: "哪个不是饮料: 水、牛奶、汤、果汁?", a_en: ["Water", "Milk", "Soup", "Juice"], a_zh: ["水", "牛奶", "汤", "果汁"], correct: 2 },
+                    { cat: 'semantic', q_en: "Odd season: Spring, Summer, December, Winter?", q_zh: "奇怪的季节: 春天、夏天、十二月、冬天?", a_en: ["Spring", "Summer", "December", "Winter"], a_zh: ["春天", "夏天", "十二月", "冬天"], correct: 2 },
+                    { cat: 'semantic', q_en: "Which is not clothing: Shirt, Pants, Watch, Shoes?", q_zh: "哪个不是衣物: 衬衫、裤子、手表、鞋子?", a_en: ["Shirt", "Pants", "Watch", "Shoes"], a_zh: ["衬衫", "裤子", "手表", "鞋子"], correct: 2 },
+                    { cat: 'semantic', q_en: "Odd profession: Doctor, Teacher, Student, Engineer?", q_zh: "不同的职业: 医生、教师、学生、工程师?", a_en: ["Doctor", "Teacher", "Student", "Engineer"], a_zh: ["医生", "教师", "学生", "工程师"], correct: 2 },
+                    { cat: 'semantic', q_en: "Which is not a musical instrument: Piano, Violin, Radio, Guitar?", q_zh: "哪个不是乐器: 钢琴、小提琴、收音机、吉他?", a_en: ["Piano", "Violin", "Radio", "Guitar"], a_zh: ["钢琴", "小提琴", "收音机、吉他"], correct: 2 },
+                    { cat: 'semantic', q_en: "Odd body part: Hand, Foot, Heart, Hair?", q_zh: "不同的身体部位: 手、脚、心脏、头发?", a_en: ["Hand", "Foot", "Heart", "Hair"], a_zh: ["手", "脚", "心脏", "头发"], correct: 2 },
+                    { cat: 'semantic', q_en: "Which is not a color: Red, Blue, Circle, Yellow?", q_zh: "哪个不是颜色: 红色、蓝色、圆形、黄色?", a_en: ["Red", "Blue", "Circle", "Yellow"], a_zh: ["红色", "蓝色", "圆形", "黄色"], correct: 2 },
+                    { cat: 'semantic', q_en: "Odd emotion: Happy, Sad, Thinking, Angry?", q_zh: "不同的情绪: 快乐、悲伤、思考、愤怒?", a_en: ["Happy", "Sad", "Thinking", "Angry"], a_zh: ["快乐", "悲伤", "思考", "愤怒"], correct: 2 },
+                    { cat: 'semantic', q_en: "Which is not a room: Kitchen, Bedroom, Garden, Bathroom?", q_zh: "哪个不是房间: 厨房、卧室、花园、浴室?", a_en: ["Kitchen", "Bedroom", "Garden", "Bathroom"], a_zh: ["厨房", "卧室", "花园", "浴室"], correct: 2 },
+                    { cat: 'semantic', q_en: "Odd weather: Sunny, Rainy, Monday, Snowy?", q_zh: "奇怪的天气: 晴天、雨天、星期一、雪天?", a_en: ["Sunny", "Rainy", "Monday", "Snowy"], a_zh: ["晴天", "雨天", "星期一", "雪天"], correct: 2 },
+                    { cat: 'semantic', q_en: "Which is not kitchenware: Pot, Pan, Television, Spoon?", q_zh: "哪个不是厨具: 锅、平底锅、电视、勺子?", a_en: ["Pot", "Pan", "Television", "Spoon"], a_zh: ["锅", "平底锅", "电视", "勺子"], correct: 2 },
+                    { cat: 'semantic', q_en: "Odd insect: Ant, Bee, Spider, Butterfly?", q_zh: "不同的昆虫: 蚂蚁、蜜蜂、蜘蛛、蝴蝶?", a_en: ["Ant", "Bee", "Spider", "Butterfly"], a_zh: ["蚂蚁", "蜜蜂", "蜘蛛", "蝴蝶"], correct: 2 },
+                    { cat: 'semantic', q_en: "Which is not a grain: Rice, Wheat, Potato, Corn?", q_zh: "哪个不是谷物: 大米、小麦、土豆、玉米?", a_en: ["Rice", "Wheat", "Potato", "Corn"], a_zh: ["大米", "小麦", "土豆", "玉米"], correct: 2 },
+                    { cat: 'semantic', q_en: "Odd sport: Soccer, Basketball, Chess, Tennis?", q_zh: "不同的运动: 足球、篮球、国际象棋、网球?", a_en: ["Soccer", "Basketball", "Chess", "Tennis"], a_zh: ["足球", "篮球", "国际象棋", "网球"], correct: 2 },
+                    { cat: 'semantic', q_en: "Which is not stationery: Pen, Paper, Book, Eraser?", q_zh: "哪个不是文具: 笔、纸、书、橡皮?", a_en: ["Pen", "Paper", "Book", "Eraser"], a_zh: ["笔", "纸", "书", "橡皮"], correct: 2 },
+                    { cat: 'semantic', q_en: "Odd shape: Circle, Square, Heavy, Triangle?", q_zh: "不同的形状: 圆形、正方形、重的、三角形?", a_en: ["Circle", "Square", "Heavy", "Triangle"], a_zh: ["圆形", "正方形", "重的", "三角形"], correct: 2 },
+                    { cat: 'semantic', q_en: "Which is not electronic: Phone, Computer, Candle, Television?", q_zh: "哪个不是电器: 电话、电脑、蜡烛、电视?", a_en: ["Phone", "Computer", "Candle", "Television"], a_zh: ["电话", "电脑", "蜡烛", "电视"], correct: 2 },
+                    { cat: 'semantic', q_en: "Odd natural element: Mountain, River, Building, Forest?", q_zh: "不同的自然元素: 山、河、建筑、森林?", a_en: ["Mountain", "River", "Building", "Forest"], a_zh: ["山", "河", "建筑", "森林"], correct: 2 },
+                    
+                    // ===== CATEGORY 2: 词语联想 Word Association (25题) =====
+                    { cat: 'association', q_en: "Ocean makes you think of:", q_zh: "海洋让你想到:", a_en: ["Whale", "Tiger", "Cloud", "Book"], a_zh: ["鲸鱼", "老虎", "云", "书"], correct: 0 },
+                    { cat: 'association', q_en: "Winter is associated with:", q_zh: "冬天联想到:", a_en: ["Snow", "Sun", "Flower", "Swimming"], a_zh: ["雪", "太阳", "花", "游泳"], correct: 0 },
+                    { cat: 'association', q_en: "Hospital reminds you of:", q_zh: "医院让你想起:", a_en: ["Doctor", "Chef", "Artist", "Driver"], a_zh: ["医生", "厨师", "艺术家", "司机"], correct: 0 },
+                    { cat: 'association', q_en: "Night is connected to:", q_zh: "夜晚关联到:", a_en: ["Moon", "Sun", "Morning", "Noon"], a_zh: ["月亮", "太阳", "早晨", "中午"], correct: 0 },
+                    { cat: 'association', q_en: "Library makes you think of:", q_zh: "图书馆让你想到:", a_en: ["Books", "Food", "Cars", "Music"], a_zh: ["书籍", "食物", "汽车", "音乐"], correct: 0 },
+                    { cat: 'association', q_en: "Rain is related to:", q_zh: "雨关联到:", a_en: ["Umbrella", "Fire", "Desert", "Ice cream"], a_zh: ["雨伞", "火", "沙漠", "冰淇淋"], correct: 0 },
+                    { cat: 'association', q_en: "Birthday reminds you of:", q_zh: "生日让你想起:", a_en: ["Cake", "Homework", "Medicine", "Traffic"], a_zh: ["蛋糕", "作业", "药物", "交通"], correct: 0 },
+                    { cat: 'association', q_en: "Music is connected to:", q_zh: "音乐关联到:", a_en: ["Instrument", "Hammer", "Vegetable", "Clock"], a_zh: ["乐器", "锤子", "蔬菜", "时钟"], correct: 0 },
+                    { cat: 'association', q_en: "Garden makes you think of:", q_zh: "花园让你想到:", a_en: ["Flowers", "Computer", "Airplane", "Money"], a_zh: ["花朵", "电脑", "飞机", "钱"], correct: 0 },
+                    { cat: 'association', q_en: "Fire is associated with:", q_zh: "火关联到:", a_en: ["Heat", "Cold", "Wet", "Soft"], a_zh: ["热", "冷", "湿", "软"], correct: 0 },
+                    { cat: 'association', q_en: "School reminds you of:", q_zh: "学校让你想起:", a_en: ["Student", "Pilot", "Farmer", "Sailor"], a_zh: ["学生", "飞行员", "农民", "水手"], correct: 0 },
+                    { cat: 'association', q_en: "Kitchen is connected to:", q_zh: "厨房关联到:", a_en: ["Cooking", "Sleeping", "Swimming", "Flying"], a_zh: ["烹饪", "睡觉", "游泳", "飞行"], correct: 0 },
+                    { cat: 'association', q_en: "Airport makes you think of:", q_zh: "机场让你想到:", a_en: ["Airplane", "Ship", "Bicycle", "Train"], a_zh: ["飞机", "轮船", "自行车", "火车"], correct: 0 },
+                    { cat: 'association', q_en: "Sunrise is related to:", q_zh: "日出关联到:", a_en: ["Morning", "Night", "Midnight", "Evening"], a_zh: ["早晨", "夜晚", "午夜", "傍晚"], correct: 0 },
+                    { cat: 'association', q_en: "Desert reminds you of:", q_zh: "沙漠让你想起:", a_en: ["Sand", "Ocean", "Forest", "Snow"], a_zh: ["沙子", "海洋", "森林", "雪"], correct: 0 },
+                    { cat: 'association', q_en: "Wedding is connected to:", q_zh: "婚礼关联到:", a_en: ["Marriage", "Funeral", "Battle", "Storm"], a_zh: ["婚姻", "葬礼", "战斗", "风暴"], correct: 0 },
+                    { cat: 'association', q_en: "Clock makes you think of:", q_zh: "时钟让你想到:", a_en: ["Time", "Color", "Taste", "Smell"], a_zh: ["时间", "颜色", "味道", "气味"], correct: 0 },
+                    { cat: 'association', q_en: "Cinema is associated with:", q_zh: "电影院关联到:", a_en: ["Movie", "Grocery", "Hospital", "Bank"], a_zh: ["电影", "杂货", "医院", "银行"], correct: 0 },
+                    { cat: 'association', q_en: "Bed reminds you of:", q_zh: "床让你想起:", a_en: ["Sleep", "Run", "Dance", "Swim"], a_zh: ["睡觉", "跑步", "跳舞", "游泳"], correct: 0 },
+                    { cat: 'association', q_en: "Telephone is connected to:", q_zh: "电话关联到:", a_en: ["Call", "Write", "Draw", "Build"], a_zh: ["通话", "写字", "画画", "建造"], correct: 0 },
+                    { cat: 'association', q_en: "Forest makes you think of:", q_zh: "森林让你想到:", a_en: ["Trees", "Building", "Ocean", "Desert"], a_zh: ["树木", "建筑", "海洋", "沙漠"], correct: 0 },
+                    { cat: 'association', q_en: "Summer is related to:", q_zh: "夏天关联到:", a_en: ["Hot", "Cold", "Frozen", "Icy"], a_zh: ["热", "冷", "冰冻", "结冰"], correct: 0 },
+                    { cat: 'association', q_en: "Newspaper reminds you of:", q_zh: "报纸让你想起:", a_en: ["News", "Food", "Clothes", "Furniture"], a_zh: ["新闻", "食物", "衣服", "家具"], correct: 0 },
+                    { cat: 'association', q_en: "Church is connected to:", q_zh: "教堂关联到:", a_en: ["Prayer", "Shopping", "Gaming", "Cooking"], a_zh: ["祈祷", "购物", "游戏", "烹饪"], correct: 0 },
+                    { cat: 'association', q_en: "Rainbow makes you think of:", q_zh: "彩虹让你想到:", a_en: ["Colors", "Black", "Night", "Darkness"], a_zh: ["颜色", "黑色", "夜晚", "黑暗"], correct: 0 },
+                    
+                    // ===== CATEGORY 3: 反义近义 Antonyms/Synonyms (15题) =====
+                    { cat: 'antonym', q_en: "Opposite of 'Happy':", q_zh: "'快乐'的反义词:", a_en: ["Sad", "Excited", "Calm", "Tired"], a_zh: ["悲伤", "兴奋", "平静", "疲倦"], correct: 0 },
+                    { cat: 'antonym', q_en: "Opposite of 'Hot':", q_zh: "'热'的反义词:", a_en: ["Cold", "Warm", "Cool", "Mild"], a_zh: ["冷", "温暖", "凉", "温和"], correct: 0 },
+                    { cat: 'synonym', q_en: "Similar to 'Big':", q_zh: "'大'的近义词:", a_en: ["Large", "Small", "Tiny", "Little"], a_zh: ["巨大", "小", "微小", "小的"], correct: 0 },
+                    { cat: 'antonym', q_en: "Opposite of 'Fast':", q_zh: "'快'的反义词:", a_en: ["Slow", "Quick", "Rapid", "Swift"], a_zh: ["慢", "快速", "迅速", "敏捷"], correct: 0 },
+                    { cat: 'synonym', q_en: "Similar to 'Happy':", q_zh: "'快乐'的近义词:", a_en: ["Joyful", "Sad", "Angry", "Scared"], a_zh: ["高兴", "悲伤", "愤怒", "害怕"], correct: 0 },
+                    { cat: 'antonym', q_en: "Opposite of 'Up':", q_zh: "'上'的反义词:", a_en: ["Down", "Side", "Forward", "Back"], a_zh: ["下", "侧", "前", "后"], correct: 0 },
+                    { cat: 'synonym', q_en: "Similar to 'Beautiful':", q_zh: "'美丽'的近义词:", a_en: ["Pretty", "Ugly", "Plain", "Dull"], a_zh: ["漂亮", "丑陋", "朴素", "乏味"], correct: 0 },
+                    { cat: 'antonym', q_en: "Opposite of 'Day':", q_zh: "'白天'的反义词:", a_en: ["Night", "Morning", "Noon", "Afternoon"], a_zh: ["夜晚", "早晨", "中午", "下午"], correct: 0 },
+                    { cat: 'synonym', q_en: "Similar to 'Small':", q_zh: "'小'的近义词:", a_en: ["Tiny", "Big", "Large", "Huge"], a_zh: ["微小", "大", "巨大", "庞大"], correct: 0 },
+                    { cat: 'antonym', q_en: "Opposite of 'Strong':", q_zh: "'强壮'的反义词:", a_en: ["Weak", "Powerful", "Mighty", "Robust"], a_zh: ["虚弱", "强大", "有力", "健壮"], correct: 0 },
+                    { cat: 'synonym', q_en: "Similar to 'Smart':", q_zh: "'聪明'的近义词:", a_en: ["Intelligent", "Stupid", "Dumb", "Slow"], a_zh: ["智慧", "愚蠢", "笨", "迟钝"], correct: 0 },
+                    { cat: 'antonym', q_en: "Opposite of 'Clean':", q_zh: "'干净'的反义词:", a_en: ["Dirty", "Pure", "Fresh", "Clear"], a_zh: ["脏", "纯净", "新鲜", "清澈"], correct: 0 },
+                    { cat: 'synonym', q_en: "Similar to 'Loud':", q_zh: "'大声'的近义词:", a_en: ["Noisy", "Quiet", "Silent", "Soft"], a_zh: ["吵闹", "安静", "寂静", "轻柔"], correct: 0 },
+                    { cat: 'antonym', q_en: "Opposite of 'Empty':", q_zh: "'空'的反义词:", a_en: ["Full", "Vacant", "Hollow", "Bare"], a_zh: ["满", "空缺", "空洞", "光秃"], correct: 0 },
+                    { cat: 'synonym', q_en: "Similar to 'Brave':", q_zh: "'勇敢'的近义词:", a_en: ["Courageous", "Cowardly", "Timid", "Fearful"], a_zh: ["英勇", "胆小", "胆怯", "害怕"], correct: 0 },
+                    
+                    // ===== CATEGORY 4: 句子逻辑 Sentence Logic (15题) - 2选项 =====
+                    { cat: 'logic', q_en: "Birds can fly?", q_zh: "鸟能飞吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
+                    { cat: 'logic', q_en: "Fish live in trees?", q_zh: "鱼住在树上吗?", a_en: ["No", "Yes"], a_zh: ["否", "是"], correct: 0 },
+                    { cat: 'logic', q_en: "Sun rises in the east?", q_zh: "太阳从东方升起吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
+                    { cat: 'logic', q_en: "Ice is hot?", q_zh: "冰是热的吗?", a_en: ["No", "Yes"], a_zh: ["否", "是"], correct: 0 },
+                    { cat: 'logic', q_en: "Elephants are bigger than mice?", q_zh: "大象比老鼠大吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
+                    { cat: 'logic', q_en: "Water flows upward?", q_zh: "水往上流吗?", a_en: ["No", "Yes"], a_zh: ["否", "是"], correct: 0 },
+                    { cat: 'logic', q_en: "Trees grow from seeds?", q_zh: "树从种子长出来吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
+                    { cat: 'logic', q_en: "Night comes after day?", q_zh: "夜晚在白天之后吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
+                    { cat: 'logic', q_en: "Penguins can swim?", q_zh: "企鹅会游泳吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
+                    { cat: 'logic', q_en: "Books are for reading?", q_zh: "书是用来阅读的吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
+                    { cat: 'logic', q_en: "Fire is cold?", q_zh: "火是冷的吗?", a_en: ["No", "Yes"], a_zh: ["否", "是"], correct: 0 },
+                    { cat: 'logic', q_en: "Chairs are for sitting?", q_zh: "椅子是用来坐的吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
+                    { cat: 'logic', q_en: "Rain makes things wet?", q_zh: "雨会让东西变湿吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
+                    { cat: 'logic', q_en: "Shoes go on hands?", q_zh: "鞋子穿在手上吗?", a_en: ["No", "Yes"], a_zh: ["否", "是"], correct: 0 },
+                    { cat: 'logic', q_en: "Clouds are in the sky?", q_zh: "云在天空中吗?", a_en: ["Yes", "No"], a_zh: ["是", "否"], correct: 0 },
+                    
+                    // ===== CATEGORY 5: 扩展数学题库 Extended Math with Difficulty Levels (50+ 静态题) =====
+                    // Level 1: 基础加减法 (个位数)
+                    { cat: 'math', level: 1, q_en: "2 + 2 = ?", q_zh: "2 + 2 = ?", a_en: ["4", "3", "5", "6"], a_zh: ["4", "3", "5", "6"], correct: 0 },
+                    { cat: 'math', level: 1, q_en: "5 - 3 = ?", q_zh: "5 - 3 = ?", a_en: ["2", "1", "3", "4"], a_zh: ["2", "1", "3", "4"], correct: 0 },
+                    { cat: 'math', level: 1, q_en: "4 + 3 = ?", q_zh: "4 + 3 = ?", a_en: ["7", "6", "8", "9"], a_zh: ["7", "6", "8", "9"], correct: 0 },
+                    { cat: 'math', level: 1, q_en: "6 + 4 = ?", q_zh: "6 + 4 = ?", a_en: ["10", "9", "11", "8"], a_zh: ["10", "9", "11", "8"], correct: 0 },
+                    { cat: 'math', level: 1, q_en: "7 - 2 = ?", q_zh: "7 - 2 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
+                    { cat: 'math', level: 1, q_en: "Which is bigger: 5 or 8?", q_zh: "哪个更大: 5 还是 8?", a_en: ["8", "5", "Same", "Neither"], a_zh: ["8", "5", "一样", "都不"], correct: 0 },
+                    { cat: 'math', level: 1, q_en: "Which is smaller: 3 or 7?", q_zh: "哪个更小: 3 还是 7?", a_en: ["3", "7", "Same", "Neither"], a_zh: ["3", "7", "一样", "都不"], correct: 0 },
+                    { cat: 'math', level: 1, q_en: "8 - 5 = ?", q_zh: "8 - 5 = ?", a_en: ["3", "2", "4", "5"], a_zh: ["3", "2", "4", "5"], correct: 0 },
+                    { cat: 'math', level: 1, q_en: "1 + 9 = ?", q_zh: "1 + 9 = ?", a_en: ["10", "9", "11", "8"], a_zh: ["10", "9", "11", "8"], correct: 0 },
+                    { cat: 'math', level: 1, q_en: "10 - 6 = ?", q_zh: "10 - 6 = ?", a_en: ["4", "3", "5", "6"], a_zh: ["4", "3", "5", "6"], correct: 0 },
+                    { cat: 'math', level: 1, q_en: "3 + 5 = ?", q_zh: "3 + 5 = ?", a_en: ["8", "7", "9", "6"], a_zh: ["8", "7", "9", "6"], correct: 0 },
+                    { cat: 'math', level: 1, q_en: "9 - 4 = ?", q_zh: "9 - 4 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
+                    
+                    // Level 2: 两位数加减法
+                    { cat: 'math', level: 2, q_en: "12 + 8 = ?", q_zh: "12 + 8 = ?", a_en: ["20", "18", "22", "19"], a_zh: ["20", "18", "22", "19"], correct: 0 },
+                    { cat: 'math', level: 2, q_en: "15 - 7 = ?", q_zh: "15 - 7 = ?", a_en: ["8", "7", "9", "6"], a_zh: ["8", "7", "9", "6"], correct: 0 },
+                    { cat: 'math', level: 2, q_en: "25 + 15 = ?", q_zh: "25 + 15 = ?", a_en: ["40", "35", "45", "50"], a_zh: ["40", "35", "45", "50"], correct: 0 },
+                    { cat: 'math', level: 2, q_en: "30 - 18 = ?", q_zh: "30 - 18 = ?", a_en: ["12", "10", "14", "16"], a_zh: ["12", "10", "14", "16"], correct: 0 },
+                    { cat: 'math', level: 2, q_en: "17 + 23 = ?", q_zh: "17 + 23 = ?", a_en: ["40", "38", "42", "44"], a_zh: ["40", "38", "42", "44"], correct: 0 },
+                    { cat: 'math', level: 2, q_en: "50 - 22 = ?", q_zh: "50 - 22 = ?", a_en: ["28", "26", "30", "32"], a_zh: ["28", "26", "30", "32"], correct: 0 },
+                    { cat: 'math', level: 2, q_en: "14 + 26 = ?", q_zh: "14 + 26 = ?", a_en: ["40", "38", "42", "36"], a_zh: ["40", "38", "42", "36"], correct: 0 },
+                    { cat: 'math', level: 2, q_en: "45 - 19 = ?", q_zh: "45 - 19 = ?", a_en: ["26", "24", "28", "30"], a_zh: ["26", "24", "28", "30"], correct: 0 },
+                    { cat: 'math', level: 2, q_en: "33 + 27 = ?", q_zh: "33 + 27 = ?", a_en: ["60", "58", "62", "56"], a_zh: ["60", "58", "62", "56"], correct: 0 },
+                    { cat: 'math', level: 2, q_en: "70 - 35 = ?", q_zh: "70 - 35 = ?", a_en: ["35", "30", "40", "45"], a_zh: ["35", "30", "40", "45"], correct: 0 },
+                    { cat: 'math', level: 2, q_en: "22 + 18 = ?", q_zh: "22 + 18 = ?", a_en: ["40", "38", "42", "36"], a_zh: ["40", "38", "42", "36"], correct: 0 },
+                    { cat: 'math', level: 2, q_en: "55 - 28 = ?", q_zh: "55 - 28 = ?", a_en: ["27", "25", "29", "31"], a_zh: ["27", "25", "29", "31"], correct: 0 },
+                    
+                    // Level 3: 乘除法
+                    { cat: 'math', level: 3, q_en: "3 × 2 = ?", q_zh: "3 × 2 = ?", a_en: ["6", "5", "7", "8"], a_zh: ["6", "5", "7", "8"], correct: 0 },
+                    { cat: 'math', level: 3, q_en: "10 ÷ 2 = ?", q_zh: "10 ÷ 2 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
+                    { cat: 'math', level: 3, q_en: "2 × 5 = ?", q_zh: "2 × 5 = ?", a_en: ["10", "9", "11", "12"], a_zh: ["10", "9", "11", "12"], correct: 0 },
+                    { cat: 'math', level: 3, q_en: "4 × 3 = ?", q_zh: "4 × 3 = ?", a_en: ["12", "10", "14", "16"], a_zh: ["12", "10", "14", "16"], correct: 0 },
+                    { cat: 'math', level: 3, q_en: "20 ÷ 4 = ?", q_zh: "20 ÷ 4 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
+                    { cat: 'math', level: 3, q_en: "6 × 5 = ?", q_zh: "6 × 5 = ?", a_en: ["30", "25", "35", "40"], a_zh: ["30", "25", "35", "40"], correct: 0 },
+                    { cat: 'math', level: 3, q_en: "18 ÷ 3 = ?", q_zh: "18 ÷ 3 = ?", a_en: ["6", "5", "7", "8"], a_zh: ["6", "5", "7", "8"], correct: 0 },
+                    { cat: 'math', level: 3, q_en: "7 × 8 = ?", q_zh: "7 × 8 = ?", a_en: ["56", "54", "58", "60"], a_zh: ["56", "54", "58", "60"], correct: 0 },
+                    { cat: 'math', level: 3, q_en: "36 ÷ 6 = ?", q_zh: "36 ÷ 6 = ?", a_en: ["6", "5", "7", "8"], a_zh: ["6", "5", "7", "8"], correct: 0 },
+                    { cat: 'math', level: 3, q_en: "9 × 4 = ?", q_zh: "9 × 4 = ?", a_en: ["36", "32", "40", "44"], a_zh: ["36", "32", "40", "44"], correct: 0 },
+                    { cat: 'math', level: 3, q_en: "45 ÷ 5 = ?", q_zh: "45 ÷ 5 = ?", a_en: ["9", "8", "10", "11"], a_zh: ["9", "8", "10", "11"], correct: 0 },
+                    { cat: 'math', level: 3, q_en: "8 × 6 = ?", q_zh: "8 × 6 = ?", a_en: ["48", "42", "54", "60"], a_zh: ["48", "42", "54", "60"], correct: 0 },
+                    
+                    // Level 4: 多步运算
+                    { cat: 'math', level: 4, q_en: "3 × 4 + 5 = ?", q_zh: "3 × 4 + 5 = ?", a_en: ["17", "15", "19", "20"], a_zh: ["17", "15", "19", "20"], correct: 0 },
+                    { cat: 'math', level: 4, q_en: "20 - 6 × 2 = ?", q_zh: "20 - 6 × 2 = ?", a_en: ["8", "6", "10", "12"], a_zh: ["8", "6", "10", "12"], correct: 0 },
+                    { cat: 'math', level: 4, q_en: "15 ÷ 3 + 8 = ?", q_zh: "15 ÷ 3 + 8 = ?", a_en: ["13", "11", "15", "17"], a_zh: ["13", "11", "15", "17"], correct: 0 },
+                    { cat: 'math', level: 4, q_en: "(12 + 8) ÷ 4 = ?", q_zh: "(12 + 8) ÷ 4 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
+                    { cat: 'math', level: 4, q_en: "25 - 3 × 5 = ?", q_zh: "25 - 3 × 5 = ?", a_en: ["10", "8", "12", "15"], a_zh: ["10", "8", "12", "15"], correct: 0 },
+                    { cat: 'math', level: 4, q_en: "40 ÷ 8 + 12 = ?", q_zh: "40 ÷ 8 + 12 = ?", a_en: ["17", "15", "19", "20"], a_zh: ["17", "15", "19", "20"], correct: 0 },
+                    { cat: 'math', level: 4, q_en: "6 × (9 - 4) = ?", q_zh: "6 × (9 - 4) = ?", a_en: ["30", "25", "35", "40"], a_zh: ["30", "25", "35", "40"], correct: 0 },
+                    { cat: 'math', level: 4, q_en: "50 - 18 ÷ 3 = ?", q_zh: "50 - 18 ÷ 3 = ?", a_en: ["44", "42", "46", "48"], a_zh: ["44", "42", "46", "48"], correct: 0 },
+                    { cat: 'math', level: 4, q_en: "8 × 3 - 10 = ?", q_zh: "8 × 3 - 10 = ?", a_en: ["14", "12", "16", "18"], a_zh: ["14", "12", "16", "18"], correct: 0 },
+                    { cat: 'math', level: 4, q_en: "(15 - 5) × 3 = ?", q_zh: "(15 - 5) × 3 = ?", a_en: ["30", "25", "35", "40"], a_zh: ["30", "25", "35", "40"], correct: 0 },
+                    
+                    // Level 5: 高级运算
+                    { cat: 'math', level: 5, q_en: "(15 + 25) × 2 = ?", q_zh: "(15 + 25) × 2 = ?", a_en: ["80", "70", "90", "100"], a_zh: ["80", "70", "90", "100"], correct: 0 },
+                    { cat: 'math', level: 5, q_en: "100 - 12 × 5 = ?", q_zh: "100 - 12 × 5 = ?", a_en: ["40", "30", "50", "60"], a_zh: ["40", "30", "50", "60"], correct: 0 },
+                    { cat: 'math', level: 5, q_en: "72 ÷ (3 + 5) = ?", q_zh: "72 ÷ (3 + 5) = ?", a_en: ["9", "8", "10", "11"], a_zh: ["9", "8", "10", "11"], correct: 0 },
+                    { cat: 'math', level: 5, q_en: "8 × 7 - 3 × 9 = ?", q_zh: "8 × 7 - 3 × 9 = ?", a_en: ["29", "27", "31", "33"], a_zh: ["29", "27", "31", "33"], correct: 0 },
+                    { cat: 'math', level: 5, q_en: "120 ÷ 4 + 15 = ?", q_zh: "120 ÷ 4 + 15 = ?", a_en: ["45", "40", "50", "55"], a_zh: ["45", "40", "50", "55"], correct: 0 },
+                    { cat: 'math', level: 5, q_en: "(60 - 20) ÷ 8 = ?", q_zh: "(60 - 20) ÷ 8 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
+                    { cat: 'math', level: 5, q_en: "14 × 5 - 25 = ?", q_zh: "14 × 5 - 25 = ?", a_en: ["45", "40", "50", "55"], a_zh: ["45", "40", "50", "55"], correct: 0 },
+                    { cat: 'math', level: 5, q_en: "96 ÷ (4 × 2) = ?", q_zh: "96 ÷ (4 × 2) = ?", a_en: ["12", "10", "14", "16"], a_zh: ["12", "10", "14", "16"], correct: 0 },
+                    { cat: 'math', level: 5, q_en: "(25 + 35) ÷ 12 = ?", q_zh: "(25 + 35) ÷ 12 = ?", a_en: ["5", "4", "6", "7"], a_zh: ["5", "4", "6", "7"], correct: 0 },
+                    { cat: 'math', level: 5, q_en: "11 × 9 - 48 = ?", q_zh: "11 × 9 - 48 = ?", a_en: ["51", "49", "53", "55"], a_zh: ["51", "49", "53", "55"], correct: 0 },
                 ];
+                
+                // ========== 动态数学题生成器 DYNAMIC MATH GENERATOR ==========
+                this.mathGenerator = {
+                    // Level 1: 个位数加减法
+                    level1: () => {
+                        const op = Math.random() < 0.5 ? '+' : '-';
+                        let a = Math.floor(Math.random() * 9) + 1;
+                        let b = Math.floor(Math.random() * 9) + 1;
+                        if (op === '-' && b > a) [a, b] = [b, a];
+                        const answer = op === '+' ? a + b : a - b;
+                        const distractors = this.generateDistractors(answer, 3, 1, 15);
+                        return {
+                            cat: 'math',
+                            level: 1,
+                            q_en: `${a} ${op} ${b} = ?`,
+                            q_zh: `${a} ${op} ${b} = ?`,
+                            a_en: distractors.map(String),
+                            a_zh: distractors.map(String),
+                            correct: distractors.indexOf(answer),
+                            dynamic: true
+                        };
+                    },
+                    
+                    level2: () => {
+                        const op = Math.random() < 0.5 ? '+' : '-';
+                        let a = Math.floor(Math.random() * 50) + 10;
+                        let b = Math.floor(Math.random() * 50) + 10;
+                        if (op === '-' && b > a) [a, b] = [b, a];
+                        const answer = op === '+' ? a + b : a - b;
+                        const distractors = this.generateDistractors(answer, 3, 5, 100);
+                        return {
+                            cat: 'math',
+                            level: 2,
+                            q_en: `${a} ${op} ${b} = ?`,
+                            q_zh: `${a} ${op} ${b} = ?`,
+                            a_en: distractors.map(String),
+                            a_zh: distractors.map(String),
+                            correct: distractors.indexOf(answer),
+                            dynamic: true
+                        };
+                    },
+                    
+                    level3: () => {
+                        const op = Math.random() < 0.6 ? '×' : '÷';
+                        if (op === '×') {
+                            const a = Math.floor(Math.random() * 12) + 2;
+                            const b = Math.floor(Math.random() * 12) + 2;
+                            const answer = a * b;
+                            const distractors = this.generateDistractors(answer, 3, 5, 150);
+                            return {
+                                cat: 'math',
+                                level: 3,
+                                q_en: `${a} × ${b} = ?`,
+                                q_zh: `${a} × ${b} = ?`,
+                                a_en: distractors.map(String),
+                                a_zh: distractors.map(String),
+                                correct: distractors.indexOf(answer),
+                                dynamic: true
+                            };
+                        } else {
+                            const b = Math.floor(Math.random() * 10) + 2;
+                            const answer = Math.floor(Math.random() * 15) + 2;
+                            const a = answer * b;
+                            const distractors = this.generateDistractors(answer, 3, 1, 50);
+                            return {
+                                cat: 'math',
+                                level: 3,
+                                q_en: `${a} ÷ ${b} = ?`,
+                                q_zh: `${a} ÷ ${b} = ?`,
+                                a_en: distractors.map(String),
+                                a_zh: distractors.map(String),
+                                correct: distractors.indexOf(answer),
+                                dynamic: true
+                            };
+                        }
+                    },
+                    
+                    level4: () => {
+                        const patterns = [
+                            () => {
+                                const a = Math.floor(Math.random() * 8) + 2;
+                                const b = Math.floor(Math.random() * 8) + 2;
+                                const c = Math.floor(Math.random() * 15) + 1;
+                                const answer = a * b + c;
+                                return { q: `${a} × ${b} + ${c}`, answer };
+                            },
+                            () => {
+                                const b = Math.floor(Math.random() * 6) + 2;
+                                const c = Math.floor(Math.random() * 6) + 2;
+                                const a = b * c + Math.floor(Math.random() * 20) + 5;
+                                const answer = a - b * c;
+                                return { q: `${a} - ${b} × ${c}`, answer };
+                            },
+                            () => {
+                                const c = Math.floor(Math.random() * 6) + 2;
+                                const answer = Math.floor(Math.random() * 12) + 2;
+                                const sum = answer * c;
+                                const a = Math.floor(sum * Math.random());
+                                const b = sum - a;
+                                return { q: `(${a} + ${b}) ÷ ${c}`, answer };
+                            },
+                            () => {
+                                const a = Math.floor(Math.random() * 8) + 2;
+                                const b = Math.floor(Math.random() * 10) + 5;
+                                const c = Math.floor(Math.random() * (b - 1)) + 1;
+                                const answer = a * (b - c);
+                                return { q: `${a} × (${b} - ${c})`, answer };
+                            }
+                        ];
+                        const pattern = patterns[Math.floor(Math.random() * patterns.length)]();
+                        const distractors = this.generateDistractors(pattern.answer, 3, 5, 100);
+                        return {
+                            cat: 'math',
+                            level: 4,
+                            q_en: `${pattern.q} = ?`,
+                            q_zh: `${pattern.q} = ?`,
+                            a_en: distractors.map(String),
+                            a_zh: distractors.map(String),
+                            correct: distractors.indexOf(pattern.answer),
+                            dynamic: true
+                        };
+                    },
+                    
+                    level5: () => {
+                        const patterns = [
+                            () => {
+                                const a = Math.floor(Math.random() * 30) + 10;
+                                const b = Math.floor(Math.random() * 30) + 10;
+                                const c = Math.floor(Math.random() * 5) + 2;
+                                const answer = (a + b) * c;
+                                return { q: `(${a} + ${b}) × ${c}`, answer };
+                            },
+                            () => {
+                                const b = Math.floor(Math.random() * 12) + 3;
+                                const c = Math.floor(Math.random() * 12) + 3;
+                                const a = b * c + Math.floor(Math.random() * 50) + 20;
+                                const answer = a - b * c;
+                                return { q: `${a} - ${b} × ${c}`, answer };
+                            },
+                            () => {
+                                const b = Math.floor(Math.random() * 6) + 2;
+                                const c = Math.floor(Math.random() * 6) + 2;
+                                const answer = Math.floor(Math.random() * 15) + 5;
+                                const a = answer * (b + c);
+                                return { q: `${a} ÷ (${b} + ${c})`, answer };
+                            },
+                            () => {
+                                const a = Math.floor(Math.random() * 10) + 5;
+                                const b = Math.floor(Math.random() * 10) + 5;
+                                const c = Math.floor(Math.random() * 8) + 2;
+                                const d = Math.floor(Math.random() * 8) + 2;
+                                const answer = Math.max(a * b - c * d, 0);
+                                return { q: `${a} × ${b} - ${c} × ${d}`, answer };
+                            }
+                        ];
+                        const pattern = patterns[Math.floor(Math.random() * patterns.length)]();
+                        const distractors = this.generateDistractors(pattern.answer, 3, 10, 200);
+                        return {
+                            cat: 'math',
+                            level: 5,
+                            q_en: `${pattern.q} = ?`,
+                            q_zh: `${pattern.q} = ?`,
+                            a_en: distractors.map(String),
+                            a_zh: distractors.map(String),
+                            correct: distractors.indexOf(pattern.answer),
+                            dynamic: true
+                        };
+                    },
+                    
+                    generateDistractors: function(correct, count, variance, max) {
+                        const options = [correct];
+                        const used = new Set([correct]);
+                        let attempts = 0;
+                        const maxAttempts = 100;
+                        
+                        while (options.length < count + 1 && attempts < maxAttempts) {
+                            const offset = Math.floor(Math.random() * variance * 2 + 1) - variance;
+                            let distractor = correct + offset;
+                            
+                            if (distractor >= 0 && distractor <= max && !used.has(distractor) && distractor !== correct) {
+                                options.push(distractor);
+                                used.add(distractor);
+                            }
+                            attempts++;
+                        }
+                        
+                        while (options.length < count + 1) {
+                            const distractor = Math.floor(Math.random() * max);
+                            if (!used.has(distractor) && distractor !== correct) {
+                                options.push(distractor);
+                                used.add(distractor);
+                            }
+                        }
+                        
+                        return options.sort(() => Math.random() - 0.5);
+                    },
+                    
+                    generate: function(level) {
+                        switch(level) {
+                            case 1: return this.level1();
+                            case 2: return this.level2();
+                            case 3: return this.level3();
+                            case 4: return this.level4();
+                            case 5: return this.level5();
+                            default: return this.level1();
+                        }
+                    }
+                };
                 
                 // ========== DIFFICULTY SYSTEM ==========
                 this.difficultySystem = {
