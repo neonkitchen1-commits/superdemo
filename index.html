@@ -4283,29 +4283,7 @@
                     return;
                 }
                 
-                const lang = I18N.lang;
-                const questionText = document.getElementById('question-text');
-                if (questionText) {
-                    const categoryLabel = {
-                        semantic: '🔖 Semantic',
-                        association: '🔗 Association', 
-                        antonym: '↔️ Antonym',
-                        synonym: '≈ Synonym',
-                        logic: '🧩 Logic',
-                        math: '🔢 Math'
-                    };
-                    const catBadge = categoryLabel[q.cat] || '';
-                    const levelBadge = q.level ? ` <span style="color: #c02625;">Lv.${q.level}</span>` : '';
-                    const dynamicBadge = q.dynamic ? ' <span style="font-size: 0.7em;">⚡</span>' : '';
-                    questionText.innerHTML = `<span class="category-badge">${catBadge}${levelBadge}${dynamicBadge}</span><br>${q[`q_${lang}`]}`;
-                }
-                
-                const optionsDiv = document.getElementById('answer-options');
-                if (!optionsDiv) {
-                    console.error('Answer options div not found');
-                    return;
-                }
-                
+             
                 optionsDiv.innerHTML = '';
                 
                 const answers = q[`a_${lang}`];
